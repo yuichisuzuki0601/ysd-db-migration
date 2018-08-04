@@ -1,0 +1,10 @@
+{
+	"cols": [
+		{"name": "id", "type": "bigint not null"},
+		{"name": "hoge_id", "type": "bigint"},
+		{"name": "name", "type": "nvarchar(128)"},
+		{"name": "date", "type": "datetime"}
+	],
+	"pk": "id",
+	"uq": "name, date"
+}

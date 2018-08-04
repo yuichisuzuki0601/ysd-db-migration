@@ -1,0 +1,12 @@
+{
+	"cols": [
+		{
+			"name": "hoge_id",
+			"references": {
+				"table": "hoge",
+				"col": "id"
+			},
+			"option": "ON UPDATE NO ACTION ON DELETE NO ACTION"
+		}
+	]
+}

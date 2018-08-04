@@ -1,0 +1,12 @@
+{
+	"cols": [
+		{
+			"index_name": "idx_hoge_id",
+			"col": "hoge_id"
+		},
+		{
+			"index_name": "idx_hoge2_id",
+			"col": "hoge2_id"
+		}
+	]
+}

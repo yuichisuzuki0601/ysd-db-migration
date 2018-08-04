@@ -1,0 +1,3 @@
+id,hoge_id,name,date
+1,1,あ,CURRENT_TIMESTAMP
+2,1,い,CURRENT_TIMESTAMP

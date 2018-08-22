@@ -13,7 +13,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 
 /**
  *
- * @author yuichi.suzuki
+ * @author yuichi
  *
  */
 @SpringBootApplication

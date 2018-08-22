@@ -2,7 +2,7 @@ package jp.co.ysd.db_migration.util;
 
 /**
  *
- * @author yuichi.suzuki
+ * @author yuichi
  *
  */
 public final class SpaceFormatter {

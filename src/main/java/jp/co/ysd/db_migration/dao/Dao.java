@@ -23,7 +23,9 @@ import jp.co.ysd.db_migration.ExecMode;
 import jp.co.ysd.db_migration.replacer.DataReplacer;
 
 /**
- * @author yuichi.suzuki
+ * 
+ * @author yuichi
+ * 
  */
 public abstract class Dao {
 

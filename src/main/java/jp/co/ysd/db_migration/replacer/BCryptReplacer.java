@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 
 /**
  *
- * @author yuichi.suzuki
+ * @author yuichi
  *
  */
 @Component

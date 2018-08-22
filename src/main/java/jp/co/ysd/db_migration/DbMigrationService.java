@@ -28,7 +28,7 @@ import jp.co.ysd.db_migration.util.FileAccessor;
 import jp.co.ysd.db_migration.util.SpaceFormatter;
 
 /**
- * @author yuichi.suzuki
+ * @author yuichi
  */
 @Service
 public class DbMigrationService {

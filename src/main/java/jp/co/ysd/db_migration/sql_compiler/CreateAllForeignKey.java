@@ -10,7 +10,7 @@ import jp.co.ysd.db_migration.util.FileAccessor;
 
 /**
  *
- * @author yuichi.suzuki
+ * @author yuichi
  *
  */
 @Component

@@ -7,7 +7,7 @@ import jp.co.ysd.db_migration.dao.Dao;
 
 /**
  *
- * @author yuichi.suzuki
+ * @author yuichi
  *
  */
 public abstract class Compile {

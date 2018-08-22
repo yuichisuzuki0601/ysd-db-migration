@@ -9,7 +9,7 @@ import org.springframework.util.StringUtils;
 
 /**
  *
- * @author yuichi.suzuki
+ * @author yuichi
  *
  */
 public final class FileAccessor {

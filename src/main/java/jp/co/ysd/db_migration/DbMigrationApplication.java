@@ -27,7 +27,7 @@ public class DbMigrationApplication {
 			System.setProperty("logging.level.org.springframework", "WARN");
 			ConfigurableApplicationContext ctx = app.run(args);
 			CommandLine cl = getCommandLine(args);
-			ctx.getBean(DbMigrationService.class).execute(getMode(cl), getRootDir(cl));
+			ctx.getBean(DbMigrationService.class).execute(getMode(cl), getRootDir(cl), getDataDir(cl));
 		} catch (Throwable t) {
 			t.printStackTrace();
 			System.exit(1);
@@ -40,6 +40,7 @@ public class DbMigrationApplication {
 		Options options = new Options();
 		options.addOption("mode", true, "適用モードを指定します");
 		options.addOption("rootdir", true, "テーブル定義ディレクトリ/データディレクトリのあるディレクトリパスを設定します");
+		options.addOption("datadir", true, "データディレクトリ名を設定します。デフォルトはdataです。");
 		return new DefaultParser().parse(options, args, false);
 	}
 
@@ -49,6 +50,10 @@ public class DbMigrationApplication {
 
 	private static String getRootDir(CommandLine cl) {
 		return cl.hasOption("rootdir") ? cl.getOptionValue("rootdir") : null;
+	}
+
+	private static String getDataDir(CommandLine cl) {
+		return cl.hasOption("datadir") ? cl.getOptionValue("datadir") : null;
 	}
 
 }

@@ -42,9 +42,9 @@ public class DbMigrationService {
 	private SqlCompiler sqlCompiler;
 
 	@Transactional
-	public void execute(ExecMode mode, String _rootDir) throws Exception {
+	public void execute(ExecMode mode, String rootDir, String dataDir) throws Exception {
 		l.info("db-migration service start.");
-		FileAccessor.init(_rootDir);
+		FileAccessor.init(rootDir, dataDir);
 		l.info("mode: " + mode);
 		l.info("root directory: " + FileAccessor.getRootDir());
 		Dao dao = factory.get();

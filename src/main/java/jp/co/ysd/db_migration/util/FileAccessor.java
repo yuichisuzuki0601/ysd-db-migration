@@ -14,14 +14,14 @@ import org.springframework.util.StringUtils;
  */
 public final class FileAccessor {
 
-	private final static String DEFAULT_ROOT_DIR = "./database";
-	private final static String DEFAULT_DATA_DIR = "%s/data";
-	private final static String DEFINE_DIR = "%s/define";
-	private final static String DEFINE_FILE = "%s/define/%s.json";
-	private final static String INDEX_FILE = "%s/index/%s-index.json";
-	private final static String CONSTRAINT_DIR = "%s/constraint";
-	private final static String CONSTRAINT_FILE = "%s/constraint/%s-constraint.json";
-	private final static String SQL_DIR = "%s/sql";
+	private static final String DEFAULT_ROOT_DIR = "./database";
+	private static final String DEFAULT_DATA_DIR = "%s/data";
+	private static final String DEFINE_DIR = "%s/define";
+	private static final String DEFINE_FILE = "%s/define/%s.json";
+	private static final String INDEX_FILE = "%s/index/%s-index.json";
+	private static final String CONSTRAINT_DIR = "%s/constraint";
+	private static final String CONSTRAINT_FILE = "%s/constraint/%s-constraint.json";
+	private static final String SQL_DIR = "%s/sql";
 
 	private static String rootDir;
 	private static String dataDir;

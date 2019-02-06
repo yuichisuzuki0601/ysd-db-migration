@@ -29,11 +29,11 @@ import jp.co.ysd.db_migration.replacer.DataReplacer;
  */
 public abstract class Dao {
 
-	private final static String SQL_DROP_TABLE = "DROP TABLE %s;";
-	private final static String SQL_CREATE_TABLE = "CREATE TABLE %s (%s);";
-	private final static String SQL_CREATE_INDEX = "CREATE INDEX %s ON %s (%s);";
-	private final static String SQL_CREATE_FOREIGN_KEY = "ALTER TABLE %s ADD FOREIGN KEY (%s) REFERENCES %s (%s) %s;";
-	private final static String SQL_INSERT = "INSERT INTO %s %s VALUES %s;";
+	private static final String SQL_DROP_TABLE = "DROP TABLE %s;";
+	private static final String SQL_CREATE_TABLE = "CREATE TABLE %s (%s);";
+	private static final String SQL_CREATE_INDEX = "CREATE INDEX %s ON %s (%s);";
+	private static final String SQL_CREATE_FOREIGN_KEY = "ALTER TABLE %s ADD FOREIGN KEY (%s) REFERENCES %s (%s) %s;";
+	private static final String SQL_INSERT = "INSERT INTO %s %s VALUES %s;";
 
 	protected Logger l = LoggerFactory.getLogger(getClass());
 

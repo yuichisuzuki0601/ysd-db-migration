@@ -14,22 +14,24 @@ import org.springframework.util.StringUtils;
  */
 public final class FileAccessor {
 
-	private final static String DEFAULT_ROOT_DIR = "./database";
-	private final static String DEFINE_DIR = "%s/define";
-	private final static String DEFINE_FILE = "%s/define/%s.json";
-	private final static String INDEX_FILE = "%s/index/%s-index.json";
-	private final static String DATA_DIR = "%s/data";
-	private final static String CONSTRAINT_DIR = "%s/constraint";
-	private final static String CONSTRAINT_FILE = "%s/constraint/%s-constraint.json";
-	private final static String SQL_DIR = "%s/sql";
+	private static final String DEFAULT_ROOT_DIR = "./database";
+	private static final String DEFAULT_DATA_DIR = "%s/data";
+	private static final String DEFINE_DIR = "%s/define";
+	private static final String DEFINE_FILE = "%s/define/%s.json";
+	private static final String INDEX_FILE = "%s/index/%s-index.json";
+	private static final String CONSTRAINT_DIR = "%s/constraint";
+	private static final String CONSTRAINT_FILE = "%s/constraint/%s-constraint.json";
+	private static final String SQL_DIR = "%s/sql";
 
 	private static String rootDir;
+	private static String dataDir;
 
 	private FileAccessor() {
 	}
 
-	public static void init(String _rootDir) {
+	public static void init(String _rootDir, String _dataDir) {
 		rootDir = _rootDir != null ? _rootDir : DEFAULT_ROOT_DIR;
+		dataDir = _dataDir != null ? "%s/" + _dataDir : DEFAULT_DATA_DIR;
 	}
 
 	public static String getRootDir() {
@@ -49,7 +51,7 @@ public final class FileAccessor {
 	}
 
 	public static File[] getOrderdDataFiles() throws IOException {
-		return getOrderdFiles(DATA_DIR);
+		return getOrderdFiles(dataDir);
 	}
 
 	public static File[] getConstraintFiles() {

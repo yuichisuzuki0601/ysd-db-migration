@@ -17,7 +17,7 @@ import jp.co.ysd.db_migration.dao.Dao;
 @Component
 public class DaoFactory {
 
-	private final static Map<String, String> DRIVER_DAOKEY_MAP = new HashMap<>();
+	private static final Map<String, String> DRIVER_DAOKEY_MAP = new HashMap<>();
 	static {
 		DRIVER_DAOKEY_MAP.put("com.mysql.jdbc.Driver", "mySqlDao");
 		DRIVER_DAOKEY_MAP.put("com.microsoft.sqlserver.jdbc.SQLServerDriver", "sqlServerDao");

@@ -21,7 +21,7 @@ public class MySqlDao extends Dao {
 
 	private String getSchema() {
 		int from = url.lastIndexOf("/") + 1;
-		int to = url.indexOf("?");
+		int to = url.indexOf("?") > 0 ? url.indexOf("?") : url.length();
 		return url.substring(from, to);
 	}
 

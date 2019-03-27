@@ -164,12 +164,16 @@ public abstract class Dao {
 			List<Object> vals = new ArrayList<>();
 			datum.entrySet().stream().forEach(e -> {
 				colsPart.add(e.getKey());
-				valsPart.add("?");
 				Object value = e.getValue();
-				for (DataReplacer replacer : replacers) {
-					value = replacer.replace(value);
+				if (value != null) {
+					valsPart.add("?");
+					for (DataReplacer replacer : replacers) {
+						value = replacer.replace(value);
+					}
+					vals.add(value);
+				} else {
+					valsPart.add("NULL");
 				}
-				vals.add(value);
 			});
 			String sql = String.format(SQL_INSERT, tableName, colsPart.toString(), valsPart.toString());
 			l.info(sql);

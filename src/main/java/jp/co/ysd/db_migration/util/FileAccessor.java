@@ -94,7 +94,6 @@ public final class FileAccessor {
 		if (orderFile.exists()) {
 			result = Files.lines(orderFile.toPath()).filter(l -> !StringUtils.isEmpty(l) && !l.startsWith("//"))
 					.map(l -> new File(String.format(dir, rootDir) + "/" + l)).toArray(File[]::new);
-			Arrays.stream(result).forEach(System.out::println);
 		} else {
 			result = new File(String.format(dir, rootDir)).listFiles();
 			if (result != null) {

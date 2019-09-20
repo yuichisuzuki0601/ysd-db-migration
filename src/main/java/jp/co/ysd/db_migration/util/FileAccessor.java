@@ -18,6 +18,7 @@ public final class FileAccessor {
 	private static final String DEFAULT_DATA_DIR = "%s/data";
 	private static final String DEFINE_DIR = "%s/define";
 	private static final String DEFINE_FILE = "%s/define/%s.json";
+	private static final String INDEX_DIR = "%s/index";
 	private static final String INDEX_FILE = "%s/index/%s-index.json";
 	private static final String CONSTRAINT_DIR = "%s/constraint";
 	private static final String CONSTRAINT_FILE = "%s/constraint/%s-constraint.json";
@@ -39,11 +40,17 @@ public final class FileAccessor {
 	}
 
 	public static File[] getDefineFiles() {
-		return new File(String.format(DEFINE_DIR, rootDir)).listFiles();
+		File[] result = new File(String.format(DEFINE_DIR, rootDir)).listFiles();
+		return result != null ? result : new File[0];
 	}
 
 	public static File getDefineFile(String tableName) {
 		return new File(String.format(DEFINE_FILE, rootDir, tableName));
+	}
+
+	public static File[] getIndexFiles() {
+		File[] result = new File(String.format(INDEX_DIR, rootDir)).listFiles();
+		return result != null ? result : new File[0];
 	}
 
 	public static File getIndexFile(String tableName) {
@@ -55,7 +62,8 @@ public final class FileAccessor {
 	}
 
 	public static File[] getConstraintFiles() {
-		return new File(String.format(CONSTRAINT_DIR, rootDir)).listFiles();
+		File[] result = new File(String.format(CONSTRAINT_DIR, rootDir)).listFiles();
+		return result != null ? result : new File[0];
 	}
 
 	public static File getConstraintFile(String tableName) {

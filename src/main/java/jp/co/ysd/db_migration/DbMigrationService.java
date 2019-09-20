@@ -72,27 +72,18 @@ public class DbMigrationService {
 		List<String> incorrectFiles = new ArrayList<>();
 		for (File file : FileAccessor.getIndexFiles()) {
 			String fileName = file.getName();
-			if (fileName.equals(".gitkeep")) {
-				continue;
-			}
 			if (!tableNames.contains(FilenameUtils.removeExtension(fileName.replaceAll("-index", "")))) {
 				incorrectFiles.add(fileName);
 			}
 		}
 		for (File file : FileAccessor.getConstraintFiles()) {
 			String fileName = file.getName();
-			if (fileName.equals(".gitkeep")) {
-				continue;
-			}
 			if (!tableNames.contains(FilenameUtils.removeExtension(fileName.replaceAll("-constraint", "")))) {
 				incorrectFiles.add(fileName);
 			}
 		}
-		for (File file : FileAccessor.getOrderdDataFiles()) {
+		for (File file : FileAccessor.getDataFiles()) {
 			String fileName = file.getName();
-			if (fileName.equals(".gitkeep")) {
-				continue;
-			}
 			if (!tableNames.contains(FilenameUtils.removeExtension(fileName.replaceAll("-data", "")))) {
 				incorrectFiles.add(fileName);
 			}

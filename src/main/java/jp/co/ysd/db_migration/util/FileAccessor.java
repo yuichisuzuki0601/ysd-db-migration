@@ -41,7 +41,7 @@ public final class FileAccessor {
 
 	public static File[] getDefineFiles() {
 		File[] result = new File(String.format(DEFINE_DIR, rootDir)).listFiles();
-		return result != null ? result : new File[0];
+		return result != null ? removeIgnoreFiles(result) : new File[0];
 	}
 
 	public static File getDefineFile(String tableName) {
@@ -50,28 +50,42 @@ public final class FileAccessor {
 
 	public static File[] getIndexFiles() {
 		File[] result = new File(String.format(INDEX_DIR, rootDir)).listFiles();
-		return result != null ? result : new File[0];
+		return result != null ? removeIgnoreFiles(result) : new File[0];
 	}
 
 	public static File getIndexFile(String tableName) {
 		return new File(String.format(INDEX_FILE, rootDir, tableName));
 	}
 
-	public static File[] getOrderdDataFiles() throws IOException {
-		return getOrderdFiles(dataDir);
-	}
-
 	public static File[] getConstraintFiles() {
 		File[] result = new File(String.format(CONSTRAINT_DIR, rootDir)).listFiles();
-		return result != null ? result : new File[0];
+		return result != null ? removeIgnoreFiles(result) : new File[0];
 	}
 
 	public static File getConstraintFile(String tableName) {
 		return new File(String.format(CONSTRAINT_FILE, rootDir, tableName));
 	}
 
+	public static File[] getDataFiles() {
+		File[] result = new File(String.format(dataDir, rootDir)).listFiles();
+		return result != null ? removeIgnoreFiles(result) : new File[0];
+	}
+
+	public static File[] getOrderdDataFiles() throws IOException {
+		return getOrderdFiles(dataDir);
+	}
+
 	public static File[] getOrderdSqlFiles() throws IOException {
 		return getOrderdFiles(SQL_DIR);
+	}
+
+	private static File[] removeIgnoreFiles(File[] files) {
+		return Arrays.stream(files).filter(f -> {
+			String fileName = f.getName();
+			boolean cond1 = !".gitkeep".equals(fileName);
+			boolean cond2 = !"order.txt".equals(fileName);
+			return cond1 && cond2;
+		}).toArray(File[]::new);
 	}
 
 	private static File[] getOrderdFiles(String dir) throws IOException {
@@ -80,6 +94,7 @@ public final class FileAccessor {
 		if (orderFile.exists()) {
 			result = Files.lines(orderFile.toPath()).filter(l -> !StringUtils.isEmpty(l) && !l.startsWith("//"))
 					.map(l -> new File(String.format(dir, rootDir) + "/" + l)).toArray(File[]::new);
+			Arrays.stream(result).forEach(System.out::println);
 		} else {
 			result = new File(String.format(dir, rootDir)).listFiles();
 			if (result != null) {

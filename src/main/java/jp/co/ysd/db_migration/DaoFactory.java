@@ -19,8 +19,9 @@ public class DaoFactory {
 
 	private static final Map<String, String> DRIVER_DAOKEY_MAP = new HashMap<>();
 	static {
-		DRIVER_DAOKEY_MAP.put("com.mysql.jdbc.Driver", "mySqlDao");
 		DRIVER_DAOKEY_MAP.put("com.microsoft.sqlserver.jdbc.SQLServerDriver", "sqlServerDao");
+		DRIVER_DAOKEY_MAP.put("com.mysql.jdbc.Driver", "mySqlDao");
+		DRIVER_DAOKEY_MAP.put("org.mariadb.jdbc.Driver", "mySqlDao");
 	}
 
 	@Value("${spring.datasource.driverClassName}")

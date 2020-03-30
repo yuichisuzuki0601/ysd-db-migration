@@ -160,6 +160,9 @@ public class DbMigrationService {
 					if ("NULL".equals(value)) {
 						value = null;
 					}
+					if (value != null) {
+						value = value.replace("\\n", "\n");
+					}
 					datum.put(columns[i], value);
 				}
 				return datum;

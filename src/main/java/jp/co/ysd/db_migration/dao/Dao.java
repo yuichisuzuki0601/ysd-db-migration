@@ -23,9 +23,9 @@ import jp.co.ysd.db_migration.ExecMode;
 import jp.co.ysd.db_migration.replacer.DataReplacer;
 
 /**
- * 
+ *
  * @author yuichi
- * 
+ *
  */
 public abstract class Dao {
 
@@ -158,7 +158,8 @@ public abstract class Dao {
 	}
 
 	public int insert(String tableName, List<Map<String, Object>> data) {
-		return (int) data.stream().map(datum -> {
+		int count = 0;
+		for (Map<String, Object> datum : data) {
 			StringJoiner colsPart = new StringJoiner(",", "(", ")");
 			StringJoiner valsPart = new StringJoiner(",", "(", ")");
 			List<Object> vals = new ArrayList<>();
@@ -179,12 +180,13 @@ public abstract class Dao {
 			l.info(sql);
 			l.info(vals.toString());
 			try {
-				return j.update(sql, vals.toArray());
+				count += j.update(sql, vals.toArray());
 			} catch (DuplicateKeyException e) {
 				l.warn("!!!duplicated!!!");
-				return 0;
+				count += 0;
 			}
-		}).count();
+		}
+		return count;
 	}
 
 	public int bulkInsert(String tableName, List<Map<String, Object>> data) {

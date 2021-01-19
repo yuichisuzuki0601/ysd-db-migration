@@ -84,8 +84,15 @@ public abstract class Dao {
 
 	@SuppressWarnings("unchecked")
 	public String getCreateTableSql(String tableName, List<Map<String, String>> cols, String pk, Object uq) {
-		String colDefine = cols.stream().map(col -> col.get("name") + " " + col.get("type"))
-				.reduce((l, r) -> l + "," + r).get();
+		String colDefine = cols.stream().map(col -> {
+			StringBuilder buf = new StringBuilder();
+			buf.append(col.get("name")).append(" ").append(col.get("type"));
+			String comment = col.get("comment");
+			if (comment != null) {
+				buf.append(" ").append("COMMENT '").append(comment).append("'");
+			}
+			return buf.toString();
+		}).reduce((l, r) -> l + "," + r).get();
 		colDefine += pk != null ? ",PRIMARY KEY(" + pk + ")" : "";
 		List<String> uqList = new ArrayList<>();
 		if (uq instanceof List) {

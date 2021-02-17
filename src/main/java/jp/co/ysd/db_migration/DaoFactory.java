@@ -21,6 +21,7 @@ public class DaoFactory {
 	static {
 		DRIVER_DAOKEY_MAP.put("com.microsoft.sqlserver.jdbc.SQLServerDriver", "sqlServerDao");
 		DRIVER_DAOKEY_MAP.put("com.mysql.jdbc.Driver", "mySqlDao");
+		DRIVER_DAOKEY_MAP.put("com.mysql.cj.jdbc.Driver", "mySqlDao");
 		DRIVER_DAOKEY_MAP.put("org.mariadb.jdbc.Driver", "mySqlDao");
 	}
 

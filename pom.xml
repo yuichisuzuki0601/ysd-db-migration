@@ -4,17 +4,17 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>jp.co.ysd</groupId>
-	<artifactId>db-migration</artifactId>
+	<artifactId>ysd-db-migration</artifactId>
 	<version>1.0.0</version>
 	<packaging>jar</packaging>
 
-	<name>db-migration</name>
+	<name>ysd-db-migration</name>
 	<description></description>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.0.8.RELEASE</version>
+		<version>2.1.1.RELEASE</version>
 		<relativePath />
 		<!-- lookup parent from repository -->
 	</parent>

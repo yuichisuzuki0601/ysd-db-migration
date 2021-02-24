@@ -8,6 +8,8 @@ import java.util.Base64;
 
 import org.springframework.stereotype.Component;
 
+import jp.co.ysd.db_migration.util.FileAccessor;
+
 /**
 *
 * @author yuichi
@@ -21,7 +23,7 @@ public class DataUriReplacer implements DataReplacer {
 		if (original instanceof String) {
 			String str = original.toString();
 			if (str.startsWith("datauri:")) {
-				String filePath = str.replaceAll("datauri:", "");
+				String filePath = FileAccessor.getDataDir() + "/" + str.replaceAll("datauri:", "");
 				try {
 					File file = new File(filePath);
 					String contentType = URLConnection.getFileNameMap().getContentTypeFor(file.getName());

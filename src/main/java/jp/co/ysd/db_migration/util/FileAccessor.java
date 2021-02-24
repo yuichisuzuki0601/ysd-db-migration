@@ -39,6 +39,10 @@ public final class FileAccessor {
 		return rootDir;
 	}
 
+	public static String getDataDir() {
+		return String.format(dataDir, rootDir);
+	}
+
 	public static File[] getDefineFiles() {
 		File[] result = new File(String.format(DEFINE_DIR, rootDir)).listFiles();
 		return result != null ? removeIgnoreFiles(result) : new File[0];
@@ -67,7 +71,7 @@ public final class FileAccessor {
 	}
 
 	public static File[] getDataFiles() {
-		File[] result = new File(String.format(dataDir, rootDir)).listFiles();
+		File[] result = new File(getDataDir()).listFiles();
 		return result != null ? removeIgnoreFiles(result) : new File[0];
 	}
 
@@ -88,14 +92,16 @@ public final class FileAccessor {
 		}).toArray(File[]::new);
 	}
 
-	private static File[] getOrderdFiles(String dir) throws IOException {
+	private static File[] getOrderdFiles(String _dir) throws IOException {
+		String dir = String.format(_dir, rootDir);
 		File[] result = null;
-		File orderFile = new File(String.format(dir + "/order.txt", rootDir));
+		File orderFile = new File(dir + "/order.txt");
 		if (orderFile.exists()) {
-			result = Files.lines(orderFile.toPath()).filter(l -> !StringUtils.isEmpty(l) && !l.startsWith("//"))
-					.map(l -> new File(String.format(dir, rootDir) + "/" + l)).toArray(File[]::new);
+			result = Files.lines(orderFile.toPath()).filter(l -> {
+				return !StringUtils.isEmpty(l) && !l.startsWith("//");
+			}).map(l -> new File(dir + "/" + l)).toArray(File[]::new);
 		} else {
-			result = new File(String.format(dir, rootDir)).listFiles();
+			result = new File(dir).listFiles();
 			if (result != null) {
 				// orderファイルがない場合は名前順
 				Arrays.sort(result, (f1, f2) -> f1.getName().compareTo(f2.getName()));

@@ -8,6 +8,8 @@ import java.sql.Types;
 import org.springframework.jdbc.core.SqlParameterValue;
 import org.springframework.stereotype.Component;
 
+import jp.co.ysd.db_migration.util.FileAccessor;
+
 /**
  *
  * @author yuichi
@@ -21,7 +23,7 @@ public class FileBlobReplacer implements DataReplacer {
 		if (original instanceof String) {
 			String str = original.toString();
 			if (str.startsWith("file:")) {
-				String filePath = str.replaceAll("file:", "");
+				String filePath = FileAccessor.getDataDir() + "/" + str.replaceAll("file:", "");
 				try {
 					original = new SqlParameterValue(Types.BLOB, Files.readAllBytes(new File(filePath).toPath()));
 				} catch (IOException e) {

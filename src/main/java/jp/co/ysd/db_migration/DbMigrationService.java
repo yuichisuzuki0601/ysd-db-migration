@@ -1,15 +1,12 @@
 package jp.co.ysd.db_migration;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
@@ -21,9 +18,9 @@ import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import au.com.bytecode.opencsv.CSVReader;
 import jp.co.ysd.db_migration.dao.Dao;
 import jp.co.ysd.db_migration.sql_compiler.SqlCompiler;
+import jp.co.ysd.db_migration.util.CsvToJsonTranspiler;
 import jp.co.ysd.db_migration.util.FileAccessor;
 import jp.co.ysd.db_migration.util.SpaceFormatter;
 
@@ -134,10 +131,10 @@ public class DbMigrationService {
 				boolean cond2 = mode == ExecMode.DATAALL;
 				if (cond1 || cond2) {
 					String extension = FilenameUtils.getExtension(dataFile.getName());
-					if ("json".equals(extension)) {
-						prepareJsonData(dataFile, tableName, dao);
-					} else if ("csv".equals(extension)) {
+					if ("csv".equals(extension)) {
 						prepareCsvData(dataFile, tableName, dao);
+					} else if ("json".equals(extension)) {
+						prepareJsonData(dataFile, tableName, dao);
 					}
 				}
 			}
@@ -146,29 +143,14 @@ public class DbMigrationService {
 
 	@SuppressWarnings("unchecked")
 	private void prepareJsonData(File dataFile, String tableName, Dao dao) throws IOException {
-		dao.insert(tableName, new ObjectMapper().readValue(dataFile, List.class));
+		String json = new String(Files.readAllBytes(Paths.get(dataFile.getPath())));
+		dao.insert(tableName, new ObjectMapper().readValue(json, List.class));
 	}
 
+	@SuppressWarnings("unchecked")
 	private void prepareCsvData(File dataFile, String tableName, Dao dao) throws IOException {
-		try (CSVReader reader = new CSVReader(new InputStreamReader(new FileInputStream(dataFile), "UTF-8"))) {
-			List<String[]> lines = reader.readAll();
-			String[] columns = lines.get(0);
-			List<Map<String, Object>> data = lines.subList(1, lines.size()).stream().map(line -> {
-				Map<String, Object> datum = new HashMap<>();
-				for (int i = 0; i < line.length; ++i) {
-					String value = line[i];
-					if ("NULL".equals(value)) {
-						value = null;
-					}
-					if (value != null) {
-						value = value.replace("\\n", "\n");
-					}
-					datum.put(columns[i], value);
-				}
-				return datum;
-			}).collect(Collectors.toList());
-			dao.bulkInsert(tableName, data);
-		}
+		String json = CsvToJsonTranspiler.transpile(dataFile.getPath());
+		dao.bulkInsert(tableName, new ObjectMapper().readValue(json, List.class));
 	}
 
 	@SuppressWarnings("unchecked")

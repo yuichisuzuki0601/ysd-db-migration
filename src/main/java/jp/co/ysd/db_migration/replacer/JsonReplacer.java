@@ -19,7 +19,7 @@ import com.microsoft.sqlserver.jdbc.StringUtils;
 
 import jp.co.ysd.db_migration.util.CsvToJsonTranspiler;
 import jp.co.ysd.db_migration.util.FileAccessor;
-import jp.co.ysd.db_migration.util.SpaceFormatter;
+import jp.co.ysd.ysd_util.string.YsdStringUtil;
 
 /**
 *
@@ -44,7 +44,7 @@ public class JsonReplacer implements DataReplacer {
 					String jsonStr = getFileJsonObject(data);
 					jsonStr = getTargetJsonObject(data, jsonStr);
 					jsonStr = filterProperties(data, jsonStr);
-					original = SpaceFormatter.format(jsonStr);
+					original = YsdStringUtil.strip(jsonStr);
 				} catch (IOException e) {
 					e.printStackTrace();
 					System.exit(1);

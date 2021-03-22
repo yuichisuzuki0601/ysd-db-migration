@@ -22,7 +22,7 @@ import jp.co.ysd.db_migration.dao.Dao;
 import jp.co.ysd.db_migration.sql_compiler.SqlCompiler;
 import jp.co.ysd.db_migration.util.CsvToJsonTranspiler;
 import jp.co.ysd.db_migration.util.FileAccessor;
-import jp.co.ysd.db_migration.util.SpaceFormatter;
+import jp.co.ysd.ysd_util.string.YsdStringUtil;
 
 /**
  * @author yuichi
@@ -177,7 +177,7 @@ public class DbMigrationService {
 			if (sqlFile.exists()) {
 				String extension = FilenameUtils.getExtension(sqlFile.getName());
 				if ("sql".equals(extension)) {
-					String sqls = SpaceFormatter.format(Files.lines(sqlFile.toPath())
+					String sqls = YsdStringUtil.strip(Files.lines(sqlFile.toPath())
 							.filter(l -> !StringUtils.isEmpty(l) && !l.startsWith("//") && !l.startsWith("--"))
 							.reduce("", (l, r) -> l + r + " "));
 					StringBuilder compiled = new StringBuilder();

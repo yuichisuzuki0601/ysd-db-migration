@@ -33,6 +33,7 @@ public abstract class Dao {
 	private static final String SQL_CREATE_TABLE = "CREATE TABLE %s (%s);";
 	private static final String SQL_CREATE_INDEX = "CREATE INDEX %s ON %s (%s);";
 	private static final String SQL_CREATE_FOREIGN_KEY = "ALTER TABLE %s ADD FOREIGN KEY (%s) REFERENCES %s (%s) %s;";
+	private static final String SQL_SELECT = "SELECT %s FROM %s WHERE id = %s;";
 	private static final String SQL_INSERT = "INSERT INTO %s %s VALUES %s;";
 
 	protected Logger l = LoggerFactory.getLogger(getClass());
@@ -158,6 +159,12 @@ public abstract class Dao {
 					ref.get("col"), col.get("option")));
 		}
 		return sql.toString();
+	}
+
+	public Object selectData(String tableName, String id, String colmuName) {
+		return j.queryForObject(String.format(SQL_SELECT, colmuName, tableName, id), (rs, rowNum) -> {
+			return rs.getObject(1);
+		});
 	}
 
 	public int insert(String tableName, Map<String, Object> data) {

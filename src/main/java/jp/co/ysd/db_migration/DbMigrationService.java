@@ -50,12 +50,13 @@ public class DbMigrationService {
 		Dao dao = factory.get();
 		if (mode == ExecMode.REBUILD || mode == ExecMode.DROPALL) {
 			dao.dropAllForeignKey();
-			dao.dropAllTable();
+			dao.dropAllTableAndView();
 		}
 		if (mode != ExecMode.DROPALL) {
 			List<String> createds = prepareTable(mode, dao);
 			prepareData(mode, dao, createds);
 			prepareConstraint(mode, dao, createds);
+			prepareView(mode, dao);
 			applySql(dao);
 		}
 		l.info("db-migration service finish.");
@@ -165,6 +166,19 @@ public class DbMigrationService {
 				List<Map<String, Object>> cols = (List<Map<String, Object>>) constraint.get("cols");
 				dao.createForeignKey(tableName, cols);
 			}
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private void prepareView(ExecMode mode, Dao dao) throws IOException {
+		if (!(mode == ExecMode.NORMAL || mode == ExecMode.REBUILD)) {
+			return;
+		}
+		File[] viewFiles = FileAccessor.getViewFiles();
+		for (File viewFile : viewFiles) {
+			String viewName = FilenameUtils.removeExtension(viewFile.getName()).replaceAll("-view", "");
+			Map<String, Object> viewSetting = new ObjectMapper().readValue(viewFile, Map.class);
+			dao.createView(viewName, viewSetting);
 		}
 	}
 

@@ -1,5 +1,7 @@
 package jp.co.ysd.db_migration.util;
 
+import static jp.co.ysd.ysd_util.stream.StreamWrapperFactory.stream;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,11 +19,13 @@ public final class FileAccessor {
 	private static final String DEFAULT_ROOT_DIR = "./database";
 	private static final String DEFAULT_DATA_DIR = "%s/data";
 	private static final String DEFINE_DIR = "%s/define";
-	private static final String DEFINE_FILE = "%s/define/%s.json";
+	private static final String DEFINE_FILE = DEFINE_DIR + "/%s.json";
 	private static final String INDEX_DIR = "%s/index";
-	private static final String INDEX_FILE = "%s/index/%s-index.json";
+	private static final String INDEX_FILE = INDEX_DIR + "/%s-index.json";
 	private static final String CONSTRAINT_DIR = "%s/constraint";
-	private static final String CONSTRAINT_FILE = "%s/constraint/%s-constraint.json";
+	private static final String CONSTRAINT_FILE = CONSTRAINT_DIR + "/%s-constraint.json";
+	private static final String VIEW_DIR = "%s/view";
+	private static final String VIEW_TEMPLATE_FILE = VIEW_DIR + "/%s";
 	private static final String SQL_DIR = "%s/sql";
 
 	private static String rootDir;
@@ -68,6 +72,16 @@ public final class FileAccessor {
 
 	public static File getConstraintFile(String tableName) {
 		return new File(String.format(CONSTRAINT_FILE, rootDir, tableName));
+	}
+
+	public static File[] getViewFiles() {
+		File[] result = new File(String.format(VIEW_DIR, rootDir)).listFiles();
+		result = result != null ? removeIgnoreFiles(result) : new File[0];
+		return stream(result).filter(f -> f.getName().endsWith("-view.json")).end().toArray(new File[0]);
+	}
+
+	public static File getViewTemplateFile(String filePath) {
+		return new File(String.format(VIEW_TEMPLATE_FILE, rootDir, filePath));
 	}
 
 	public static File[] getDataFiles() {

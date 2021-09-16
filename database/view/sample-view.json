@@ -1,0 +1,6 @@
+{
+	"template": "./templates/sample-template.sql",
+	"parameters": {
+		"target": "hoge"
+	}
+}

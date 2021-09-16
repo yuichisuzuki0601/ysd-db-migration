@@ -1,5 +1,11 @@
 package jp.co.ysd.db_migration.dao;
 
+import static jp.co.ysd.ysd_util.stream.StreamWrapperFactory.stream;
+import static jp.co.ysd.ysd_util.string.YsdStringUtil.strip;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.PreparedStatement;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -21,6 +27,8 @@ import org.springframework.util.StringUtils;
 
 import jp.co.ysd.db_migration.ExecMode;
 import jp.co.ysd.db_migration.replacer.DataReplacer;
+import jp.co.ysd.db_migration.util.FileAccessor;
+import jp.co.ysd.ysd_util.tuple.Tuple2;
 
 /**
  *
@@ -30,9 +38,11 @@ import jp.co.ysd.db_migration.replacer.DataReplacer;
 public abstract class Dao {
 
 	private static final String SQL_DROP_TABLE = "DROP TABLE %s;";
+	private static final String SQL_DROP_VIEW = "DROP VIEW %s;";
 	private static final String SQL_CREATE_TABLE = "CREATE TABLE %s (%s);";
 	private static final String SQL_CREATE_INDEX = "CREATE INDEX %s ON %s (%s);";
 	private static final String SQL_CREATE_FOREIGN_KEY = "ALTER TABLE %s ADD FOREIGN KEY (%s) REFERENCES %s (%s) %s;";
+	private static final String SQL_CREATE_VIEW = "CREATE VIEW %s AS %s;";
 	private static final String SQL_SELECT = "SELECT %s FROM %s WHERE id = %s;";
 	private static final String SQL_INSERT = "INSERT INTO %s %s VALUES %s;";
 
@@ -44,16 +54,20 @@ public abstract class Dao {
 	@Autowired
 	protected List<DataReplacer> replacers;
 
-	protected abstract boolean existTable(String tableName);
+	protected abstract boolean existTableAndView(String tableName);
 
-	protected abstract String getSelectAllTableSql();
+	// protected abstract boolean existView(String viewName);
+
+	protected abstract String getSelectAllTableAndViewSql();
 
 	protected abstract String getSelectAllForeignKeySql();
 
 	protected abstract String getDropForeignKeySql();
 
-	protected List<String> selectAllTable() {
-		return j.query(getSelectAllTableSql(), (rs, rowNum) -> rs.getString("name"));
+	protected List<Tuple2<String, String>> selectAllTableAndView() {
+		return j.query(getSelectAllTableAndViewSql(), (rs, rowNum) -> {
+			return new Tuple2<>(rs.getString("name"), rs.getString("type"));
+		});
 	}
 
 	private void dropTable(String tableName) {
@@ -62,17 +76,27 @@ public abstract class Dao {
 		j.execute(sql);
 	}
 
-	public void dropAllTable() {
-		selectAllTable().forEach(tableName -> dropTable(tableName));
+	private void dropView(String viewName) {
+		String sql = String.format(SQL_DROP_VIEW, viewName);
+		l.info(sql);
+		j.execute(sql);
 	}
 
-	public boolean createTable(String tableName, List<Map<String, String>> cols, String pk, String uq) {
-		return createTable(ExecMode.NORMAL, tableName, cols, pk, uq);
+	public void dropAllTableAndView() {
+		selectAllTableAndView().forEach(tableInfo -> {
+			String name = tableInfo.one();
+			String type = tableInfo.two();
+			if ("VIEW".equals(type)) {
+				dropView(name);
+			} else {
+				dropTable(name);
+			}
+		});
 	}
 
 	public boolean createTable(ExecMode mode, String tableName, List<Map<String, String>> cols, String pk, Object uq) {
 		boolean result = false;
-		boolean condCreate = mode == ExecMode.REBUILD || !existTable(tableName);
+		boolean condCreate = mode == ExecMode.REBUILD || !existTableAndView(tableName);
 		if (condCreate) {
 			String sql = getCreateTableSql(tableName, cols, pk, uq);
 			l.info(sql);
@@ -159,6 +183,26 @@ public abstract class Dao {
 					ref.get("col"), col.get("option")));
 		}
 		return sql.toString();
+	}
+
+	@SuppressWarnings("unchecked")
+	public void createView(String viewName, Map<String, Object> viewSetting) throws IOException {
+		boolean condCreate = !existTableAndView(viewName);
+		if (condCreate) {
+			Path templatePath = FileAccessor.getViewTemplateFile((String) viewSetting.get("template")).toPath();
+			Map<String, Object> parameters = (Map<String, Object>) viewSetting.get("parameters");
+			execute(getCreateViewSql(viewName, templatePath, parameters));
+		}
+		l.info("view:" + viewName + (condCreate ? " was created." : " is already exists."));
+	}
+
+	public String getCreateViewSql(String viewName, Path templatePath, Map<String, Object> parameters)
+			throws IOException {
+		String targetSql = strip(stream(Files.readAllLines(templatePath)).reduce((l, r) -> l + " " + r));
+		for (Entry<String, Object> parameter : parameters.entrySet()) {
+			targetSql = targetSql.replaceAll("\\$\\{" + parameter.getKey() + "\\}", parameter.getValue().toString());
+		}
+		return String.format(SQL_CREATE_VIEW, viewName, targetSql);
 	}
 
 	public Object selectData(String tableName, String id, String colmuName) {

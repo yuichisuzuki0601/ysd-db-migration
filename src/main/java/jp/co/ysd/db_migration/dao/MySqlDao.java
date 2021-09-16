@@ -11,8 +11,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class MySqlDao extends Dao {
 
-	private static final String SQL_EXIST_TBL = "SHOW TABLES FROM %s LIKE ?";
-	private static final String SQL_SELECT_ALL_TBL = "SELECT TABLE_NAME AS name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '%s'";
+	private static final String SQL_EXIST_TBL_AND_VIEW = "SHOW TABLES FROM %s LIKE ?";
+	private static final String SQL_SELECT_ALL_TBL_AND_VIEW = "SELECT TABLE_NAME AS name, TABLE_TYPE AS type FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '%s'";
 	private static final String SQL_SELECT_FK = "SELECT f1.constraint_name AS foreign_key_name,f2.table_name AS table_name FROM information_schema.table_constraints f1 INNER JOIN information_schema.key_column_usage f2 ON f1.table_schema = f2.table_schema AND f1.constraint_name = f2.constraint_name WHERE f1.constraint_type = 'FOREIGN KEY' AND f2.constraint_schema = '%s'";
 	private static final String SQL_DROP_FK = "ALTER TABLE %s DROP FOREIGN KEY %s";
 
@@ -26,14 +26,14 @@ public class MySqlDao extends Dao {
 	}
 
 	@Override
-	protected boolean existTable(String tableName) {
-		return !j.query(String.format(SQL_EXIST_TBL, getSchema()), new Object[] { tableName },
+	protected boolean existTableAndView(String name) {
+		return !j.query(String.format(SQL_EXIST_TBL_AND_VIEW, getSchema()), new Object[] { name },
 				(rs, rowNum) -> rs.getObject(1)).isEmpty();
 	}
 
 	@Override
-	protected String getSelectAllTableSql() {
-		return String.format(SQL_SELECT_ALL_TBL, getSchema());
+	protected String getSelectAllTableAndViewSql() {
+		return String.format(SQL_SELECT_ALL_TBL_AND_VIEW, getSchema());
 	}
 
 	@Override

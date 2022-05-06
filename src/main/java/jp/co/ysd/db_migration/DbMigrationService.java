@@ -33,6 +33,9 @@ public class DbMigrationService {
 	private Logger l = LoggerFactory.getLogger(getClass());
 
 	@Autowired
+	private FileChecker fileChecker;
+
+	@Autowired
 	private DaoFactory factory;
 
 	@Autowired
@@ -45,7 +48,7 @@ public class DbMigrationService {
 		l.info("mode: " + mode);
 		l.info("root directory: " + FileAccessor.getRootDir());
 		if (mode == ExecMode.NORMAL || mode == ExecMode.REBUILD) {
-			checkAllFiles();
+			fileChecker.checkAllFiles();
 		}
 		Dao dao = factory.get();
 		if (mode == ExecMode.REBUILD || mode == ExecMode.DROPALL) {
@@ -60,35 +63,6 @@ public class DbMigrationService {
 			applySql(dao);
 		}
 		l.info("db-migration service finish.");
-	}
-
-	private void checkAllFiles() throws Exception {
-		List<String> tableNames = new ArrayList<>();
-		for (File defineFile : FileAccessor.getDefineFiles()) {
-			tableNames.add(FilenameUtils.removeExtension(defineFile.getName()));
-		}
-		List<String> incorrectFiles = new ArrayList<>();
-		for (File file : FileAccessor.getIndexFiles()) {
-			String fileName = file.getName();
-			if (!tableNames.contains(FilenameUtils.removeExtension(fileName.replaceAll("-index", "")))) {
-				incorrectFiles.add(fileName);
-			}
-		}
-		for (File file : FileAccessor.getConstraintFiles()) {
-			String fileName = file.getName();
-			if (!tableNames.contains(FilenameUtils.removeExtension(fileName.replaceAll("-constraint", "")))) {
-				incorrectFiles.add(fileName);
-			}
-		}
-		for (File file : FileAccessor.getDataFiles()) {
-			String fileName = file.getName();
-			if (!tableNames.contains(FilenameUtils.removeExtension(fileName.replaceAll("-data", "")))) {
-				incorrectFiles.add(fileName);
-			}
-		}
-		if (!incorrectFiles.isEmpty()) {
-			throw new RuntimeException("Incorrect files are mixed. " + incorrectFiles.toString());
-		}
 	}
 
 	@SuppressWarnings("unchecked")

@@ -11,7 +11,10 @@ public enum ExecMode {
 	// rebuild:全テーブル再作成
 	// dropall:全テーブル削除
 	// dataall:データのみ全適用
-	NORMAL, REBUILD, DROPALL, DATAALL;
+	// replaceindex:インデックスの更新のみ
+	// replaceindex:インデックスの削除のみ
+	// replaceview:ビューの更新のみ
+	NORMAL, REBUILD, DROPALL, DATAALL, REPLACEINDEX, DROPINDEX, REPLACEVIEW;
 
 	public static ExecMode of(String mode) {
 		for (ExecMode self : values()) {

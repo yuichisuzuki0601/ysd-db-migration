@@ -47,16 +47,26 @@ public class DbMigrationService {
 		FileAccessor.init(rootDir, dataDir);
 		l.info("mode: " + mode);
 		l.info("root directory: " + FileAccessor.getRootDir());
+		Dao dao = factory.get();
+		if (mode == ExecMode.REPLACEINDEX || mode == ExecMode.DROPINDEX) {
+			prepareIndex(mode, dao);
+			return;
+		}
+		if (mode == ExecMode.REPLACEVIEW) {
+			prepareView(mode, dao);
+			return;
+		}
+		// ***
 		if (mode == ExecMode.NORMAL || mode == ExecMode.REBUILD) {
 			fileChecker.checkAllFiles();
 		}
-		Dao dao = factory.get();
 		if (mode == ExecMode.REBUILD || mode == ExecMode.DROPALL) {
 			dao.dropAllForeignKey();
 			dao.dropAllTableAndView();
 		}
 		if (mode != ExecMode.DROPALL) {
 			List<String> createds = prepareTable(mode, dao);
+			prepareIndex(mode, dao, createds);
 			prepareData(mode, dao, createds);
 			prepareConstraint(mode, dao, createds);
 			prepareView(mode, dao);
@@ -82,16 +92,53 @@ public class DbMigrationService {
 			String pk = (String) define.get("pk");
 			Object uq = define.get("uq");
 			if (dao.createTable(mode, tableName, cols, pk, uq)) {
-				File indexFile = FileAccessor.getIndexFile(tableName);
-				if (indexFile.exists()) {
-					Map<String, Object> index = new ObjectMapper().readValue(indexFile, Map.class);
-					List<Map<String, Object>> indexCols = (List<Map<String, Object>>) index.get("cols");
-					dao.createIndex(tableName, indexCols);
-				}
 				createds.add(tableName);
 			}
 		}
 		return createds;
+	}
+
+	@SuppressWarnings("unchecked")
+	private void prepareIndexCore(ExecMode mode, Dao dao, File indexFile, String tableName) throws IOException {
+		Map<String, Object> index = new ObjectMapper().readValue(indexFile, Map.class);
+		List<Map<String, Object>> indexCols = (List<Map<String, Object>>) index.get("cols");
+		try {
+			dao.dropIndexFromTable(tableName);
+			if (mode != ExecMode.DROPINDEX) {
+				dao.createIndex(tableName, indexCols);
+			}
+		} catch (Exception e) {
+			if (mode != ExecMode.REPLACEINDEX && mode != ExecMode.DROPINDEX) {
+				throw new IOException(e);
+			} else {
+				System.err.println(e.getMessage());
+			}
+		}
+	}
+
+	private void prepareIndex(ExecMode mode, Dao dao) throws IOException {
+		if (!(mode == ExecMode.NORMAL || mode == ExecMode.REBUILD || mode == ExecMode.REPLACEINDEX
+				|| mode == ExecMode.DROPINDEX)) {
+			return;
+		}
+		File[] indexFiles = FileAccessor.getIndexFiles();
+		for (File indexFile : indexFiles) {
+			String tableName = FilenameUtils.removeExtension(indexFile.getName()).replaceAll("-index", "");
+			prepareIndexCore(mode, dao, indexFile, tableName);
+		}
+	}
+
+	private void prepareIndex(ExecMode mode, Dao dao, List<String> createds) throws IOException {
+		if (!(mode == ExecMode.NORMAL || mode == ExecMode.REBUILD || mode == ExecMode.REPLACEINDEX
+				|| mode == ExecMode.DROPINDEX)) {
+			return;
+		}
+		for (String tableName : createds) {
+			File indexFile = FileAccessor.getIndexFile(tableName);
+			if (indexFile.exists()) {
+				prepareIndexCore(mode, dao, indexFile, tableName);
+			}
+		}
 	}
 
 	private void prepareData(ExecMode mode, Dao dao, List<String> createds) throws IOException {
@@ -145,14 +192,20 @@ public class DbMigrationService {
 
 	@SuppressWarnings("unchecked")
 	private void prepareView(ExecMode mode, Dao dao) throws IOException {
-		if (!(mode == ExecMode.NORMAL || mode == ExecMode.REBUILD)) {
+		if (!(mode == ExecMode.NORMAL || mode == ExecMode.REBUILD || mode == ExecMode.REPLACEVIEW)) {
 			return;
 		}
 		File[] viewFiles = FileAccessor.getViewFiles();
 		for (File viewFile : viewFiles) {
 			String viewName = FilenameUtils.removeExtension(viewFile.getName()).replaceAll("-view", "");
 			Map<String, Object> viewSetting = new ObjectMapper().readValue(viewFile, Map.class);
-			dao.createView(viewName, viewSetting);
+			try {
+				dao.createView(mode == ExecMode.REPLACEVIEW, viewName, viewSetting);
+			} catch (Exception e) {
+				if (mode != ExecMode.REPLACEVIEW) {
+					throw new IOException(e);
+				}
+			}
 		}
 	}
 

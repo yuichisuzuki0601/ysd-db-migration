@@ -35,4 +35,10 @@ public class SqlServerDao extends Dao {
 		return SQL_DROP_FK;
 	}
 
+	@Override
+	protected String getSelectAllIndexFromTableSql(String tableName) {
+		// TODO 実装
+		return null;
+	}
+
 }

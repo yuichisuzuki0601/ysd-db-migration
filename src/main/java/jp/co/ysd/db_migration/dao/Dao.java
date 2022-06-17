@@ -38,11 +38,12 @@ import jp.co.ysd.ysd_util.tuple.Tuple2;
 public abstract class Dao {
 
 	private static final String SQL_DROP_TABLE = "DROP TABLE %s;";
+	private static final String SQL_DROP_INDEX = "DROP INDEX %s ON %s;";
 	private static final String SQL_DROP_VIEW = "DROP VIEW %s;";
 	private static final String SQL_CREATE_TABLE = "CREATE TABLE %s (%s);";
 	private static final String SQL_CREATE_INDEX = "CREATE INDEX %s ON %s (%s);";
 	private static final String SQL_CREATE_FOREIGN_KEY = "ALTER TABLE %s ADD FOREIGN KEY (%s) REFERENCES %s (%s) %s;";
-	private static final String SQL_CREATE_VIEW = "CREATE VIEW %s AS %s;";
+	private static final String SQL_CREATE_VIEW = "CREATE OR REPLACE VIEW %s AS %s;";
 	private static final String SQL_SELECT = "SELECT %s FROM %s WHERE id = %s;";
 	private static final String SQL_INSERT = "INSERT INTO %s %s VALUES %s;";
 
@@ -64,11 +65,7 @@ public abstract class Dao {
 
 	protected abstract String getDropForeignKeySql();
 
-	protected List<Tuple2<String, String>> selectAllTableAndView() {
-		return j.query(getSelectAllTableAndViewSql(), (rs, rowNum) -> {
-			return new Tuple2<>(rs.getString("name"), rs.getString("type"));
-		});
-	}
+	protected abstract String getSelectAllIndexFromTableSql(String tableName);
 
 	private void dropTable(String tableName) {
 		String sql = String.format(SQL_DROP_TABLE, tableName);
@@ -80,6 +77,12 @@ public abstract class Dao {
 		String sql = String.format(SQL_DROP_VIEW, viewName);
 		l.info(sql);
 		j.execute(sql);
+	}
+
+	private List<Tuple2<String, String>> selectAllTableAndView() {
+		return j.query(getSelectAllTableAndViewSql(), (rs, rowNum) -> {
+			return new Tuple2<>(rs.getString("name"), rs.getString("type"));
+		});
 	}
 
 	public void dropAllTableAndView() {
@@ -129,6 +132,21 @@ public abstract class Dao {
 			colDefine += ",UNIQUE(" + line + ")";
 		}
 		return String.format(SQL_CREATE_TABLE, tableName, colDefine);
+	}
+
+	private List<String> selectAllIndexFromTable(String tableName) {
+		return j.query(getSelectAllIndexFromTableSql(tableName), (rs, rowNum) -> {
+			return rs.getString("Key_name");
+		});
+	}
+
+	public void dropIndexFromTable(String tableName) {
+		List<String> indexNames = selectAllIndexFromTable(tableName);
+		for (String indexName : indexNames) {
+			String sql = String.format(SQL_DROP_INDEX, indexName, tableName);
+			l.info(sql);
+			j.execute(sql);
+		}
 	}
 
 	public void createIndex(String tableName, List<Map<String, Object>> cols) {
@@ -186,8 +204,8 @@ public abstract class Dao {
 	}
 
 	@SuppressWarnings("unchecked")
-	public void createView(String viewName, Map<String, Object> viewSetting) throws IOException {
-		boolean condCreate = !existTableAndView(viewName);
+	public void createView(boolean force, String viewName, Map<String, Object> viewSetting) throws IOException {
+		boolean condCreate = force || !existTableAndView(viewName);
 		if (condCreate) {
 			Path templatePath = FileAccessor.getViewTemplateFile((String) viewSetting.get("template")).toPath();
 			Map<String, Object> parameters = (Map<String, Object>) viewSetting.get("parameters");

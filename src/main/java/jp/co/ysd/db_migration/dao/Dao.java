@@ -1,7 +1,7 @@
 package jp.co.ysd.db_migration.dao;
 
-import static jp.co.ysd.ysd_util.stream.StreamWrapperFactory.stream;
-import static jp.co.ysd.ysd_util.string.YsdStringUtil.strip;
+import static jp.co.ysd.ysd_util.stream.StreamWrapperFactory.*;
+import static jp.co.ysd.ysd_util.string.YsdStringUtil.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -37,15 +37,16 @@ import jp.co.ysd.ysd_util.tuple.Tuple2;
  */
 public abstract class Dao {
 
-	private static final String SQL_DROP_TABLE = "DROP TABLE %s;";
-	private static final String SQL_DROP_INDEX = "DROP INDEX %s ON %s;";
-	private static final String SQL_DROP_VIEW = "DROP VIEW %s;";
-	private static final String SQL_CREATE_TABLE = "CREATE TABLE %s (%s);";
-	private static final String SQL_CREATE_INDEX = "CREATE INDEX %s ON %s (%s);";
-	private static final String SQL_CREATE_FOREIGN_KEY = "ALTER TABLE %s ADD FOREIGN KEY (%s) REFERENCES %s (%s) %s;";
-	private static final String SQL_CREATE_VIEW = "CREATE OR REPLACE VIEW %s AS %s;";
-	private static final String SQL_SELECT = "SELECT %s FROM %s WHERE id = %s;";
-	private static final String SQL_INSERT = "INSERT INTO %s %s VALUES %s;";
+	private static final String SQL_DROP_TABLE = "DROP TABLE `%s`;";
+	private static final String SQL_DROP_INDEX = "DROP INDEX `%s` ON %s;";
+	private static final String SQL_DROP_VIEW = "DROP VIEW `%s`;";
+	private static final String SQL_CREATE_TABLE = "CREATE TABLE `%s` (%s);";
+	private static final String SQL_CREATE_INDEX = "CREATE INDEX `%s` ON `%s` (%s);";
+	private static final String SQL_CREATE_FOREIGN_KEY = "ALTER TABLE `%s` ADD FOREIGN KEY (`%s`) REFERENCES `%s` (`%s`) %s;";
+	private static final String SQL_CREATE_VIEW = "CREATE OR REPLACE VIEW `%s` AS %s;";
+	private static final String SQL_SELECT_BY_ID = "SELECT `%s` FROM `%s` WHERE id = %s;";
+	private static final String SQL_SELECT_ORDER_BY_ID = "SELECT `%s` FROM `%s` ORDER BY id;";
+	private static final String SQL_INSERT = "INSERT INTO `%s` %s VALUES %s;";
 
 	protected Logger l = LoggerFactory.getLogger(getClass());
 
@@ -56,8 +57,6 @@ public abstract class Dao {
 	protected List<DataReplacer> replacers;
 
 	protected abstract boolean existTableAndView(String tableName);
-
-	// protected abstract boolean existView(String viewName);
 
 	protected abstract String getSelectAllTableAndViewSql();
 
@@ -114,7 +113,7 @@ public abstract class Dao {
 	public String getCreateTableSql(String tableName, List<Map<String, String>> cols, String pk, Object uq) {
 		String colDefine = cols.stream().map(col -> {
 			StringBuilder buf = new StringBuilder();
-			buf.append(col.get("name")).append(" ").append(col.get("type"));
+			buf.append("`").append(col.get("name")).append("` ").append(col.get("type"));
 			String comment = col.get("comment");
 			if (comment != null) {
 				buf.append(" ").append("COMMENT '").append(comment).append("'");
@@ -174,7 +173,7 @@ public abstract class Dao {
 
 	public void dropAllForeignKey() {
 		String sql = getDropAllForeignKeySql();
-		if (!StringUtils.isEmpty(sql)) {
+		if (StringUtils.hasText(sql)) {
 			execute(sql);
 		}
 	}
@@ -223,8 +222,14 @@ public abstract class Dao {
 		return String.format(SQL_CREATE_VIEW, viewName, targetSql);
 	}
 
-	public Object selectData(String tableName, String id, String colmuName) {
-		return j.queryForObject(String.format(SQL_SELECT, colmuName, tableName, id), (rs, rowNum) -> {
+	public Object selectDataById(String tableName, String colmuName, String id) {
+		return j.queryForObject(String.format(SQL_SELECT_BY_ID, colmuName, tableName, id), (rs, rowNum) -> {
+			return rs.getObject(1);
+		});
+	}
+
+	public List<Object> selectDataOrderById(String tableName, String colmuName) {
+		return j.query(String.format(SQL_SELECT_ORDER_BY_ID, colmuName, tableName), (rs, rowNum) -> {
 			return rs.getObject(1);
 		});
 	}
@@ -240,7 +245,7 @@ public abstract class Dao {
 			StringJoiner valsPart = new StringJoiner(",", "(", ")");
 			List<Object> vals = new ArrayList<>();
 			datum.entrySet().stream().forEach(e -> {
-				colsPart.add(e.getKey());
+				colsPart.add("`" + e.getKey() + "`");
 				Object value = e.getValue();
 				if (value != null) {
 					valsPart.add("?");
@@ -273,7 +278,7 @@ public abstract class Dao {
 		StringJoiner colsPart = new StringJoiner(",", "(", ")");
 		StringJoiner valsPart = new StringJoiner(",", "(", ")");
 		datum0.entrySet().stream().forEach(e -> {
-			colsPart.add(e.getKey());
+			colsPart.add("`" + e.getKey() + "`");
 			valsPart.add("?");
 		});
 		String sql = String.format(SQL_INSERT, tableName, colsPart.toString(), valsPart.toString());

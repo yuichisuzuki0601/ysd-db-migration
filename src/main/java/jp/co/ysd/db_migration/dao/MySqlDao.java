@@ -28,8 +28,8 @@ public class MySqlDao extends Dao {
 
 	@Override
 	protected boolean existTableAndView(String name) {
-		return !j.query(String.format(SQL_EXIST_TBL_AND_VIEW, getSchema()), new Object[] { name },
-				(rs, rowNum) -> rs.getObject(1)).isEmpty();
+		return !j.query(String.format(SQL_EXIST_TBL_AND_VIEW, getSchema()), (rs, rowNum) -> rs.getObject(1), name)
+				.isEmpty();
 	}
 
 	@Override

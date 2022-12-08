@@ -2,6 +2,16 @@ spring:
   datasource:
     driverClassName: com.microsoft.sqlserver.jdbc.SQLServerDriver
     url: jdbc:sqlserver://localhost:1433
+    hikari:
+      dataSourceProperties:
+        autoReconnect: true
+        allowPublicKeyRetrieval: true
+        characterEncoding: utf-8
+        serverTimezone: JST
+        useJDBCCompliantTimezoneShift: false
+        useSSL: false
+        useTimezone: true
+        useUnicode: true
     username: *** user name here ***
     password: *** password here ***
 

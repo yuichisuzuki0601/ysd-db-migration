@@ -46,6 +46,7 @@ public class DbMigrationService {
 		l.info("db-migration service start.");
 		FileAccessor.init(rootDir, dataDir);
 		l.info("mode: " + mode);
+		l.info("root directory: {}ooo{}", FileAccessor.getRootDir(), "hoge");
 		l.info("root directory: " + FileAccessor.getRootDir());
 		Dao dao = factory.get();
 		if (mode == ExecMode.REPLACEINDEX || mode == ExecMode.DROPINDEX) {
@@ -219,7 +220,7 @@ public class DbMigrationService {
 				String extension = FilenameUtils.getExtension(sqlFile.getName());
 				if ("sql".equals(extension)) {
 					String sqls = YsdStringUtil.strip(Files.lines(sqlFile.toPath())
-							.filter(l -> !StringUtils.isEmpty(l) && !l.startsWith("//") && !l.startsWith("--"))
+							.filter(l -> StringUtils.hasText(l) && !l.startsWith("//") && !l.startsWith("--"))
 							.reduce("", (l, r) -> l + r + " "));
 					StringBuilder compiled = new StringBuilder();
 					for (String sql : sqls.split(";")) {

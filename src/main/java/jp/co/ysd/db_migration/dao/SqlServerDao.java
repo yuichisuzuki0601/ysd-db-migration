@@ -17,7 +17,7 @@ public class SqlServerDao extends Dao {
 
 	@Override
 	protected boolean existTableAndView(String name) {
-		return !j.query(SQL_EXIST_TBL_AND_VIEW, new Object[] { name }, (rs, rowNum) -> rs.getObject(1)).isEmpty();
+		return !j.query(SQL_EXIST_TBL_AND_VIEW, (rs, rowNum) -> rs.getObject(1), name).isEmpty();
 	}
 
 	@Override

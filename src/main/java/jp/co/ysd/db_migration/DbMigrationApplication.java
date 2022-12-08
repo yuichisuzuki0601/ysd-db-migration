@@ -19,11 +19,12 @@ import org.springframework.context.ConfigurableApplicationContext;
 @SpringBootApplication
 public class DbMigrationApplication {
 
-	public static void main(String[] args) {
+	public static void main(String... args) {
 		try {
 			SpringApplication app = new SpringApplication(DbMigrationApplication.class);
 			app.setBannerMode(Mode.OFF);
 			app.setLogStartupInfo(false);
+			System.setProperty("spring.main.allowCircularReferences", "true");
 			System.setProperty("logging.level.org.springframework", "WARN");
 			ConfigurableApplicationContext ctx = app.run(args);
 			CommandLine cl = getCommandLine(args);

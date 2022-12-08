@@ -25,5 +25,6 @@ nbdist/
 
 ### Additional ###
 .DS_Store
+application.yml
 
 !.gitkeep

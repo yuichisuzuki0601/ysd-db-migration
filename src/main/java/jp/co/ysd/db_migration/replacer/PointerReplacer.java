@@ -27,7 +27,7 @@ public class PointerReplacer implements DataReplacer {
 				String id = info[1];
 				String colmnName = info[2];
 				Dao dao = factory.get();
-				Object o = dao.selectData(tableName, id, colmnName);
+				Object o = dao.selectDataById(tableName, colmnName, id);
 				original = o.toString();
 			}
 		}

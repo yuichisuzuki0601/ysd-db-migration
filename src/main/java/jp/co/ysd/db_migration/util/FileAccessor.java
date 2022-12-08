@@ -1,6 +1,6 @@
 package jp.co.ysd.db_migration.util;
 
-import static jp.co.ysd.ysd_util.stream.StreamWrapperFactory.stream;
+import static jp.co.ysd.ysd_util.stream.StreamWrapperFactory.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -112,7 +112,7 @@ public final class FileAccessor {
 		File orderFile = new File(dir + "/order.txt");
 		if (orderFile.exists()) {
 			result = Files.lines(orderFile.toPath()).filter(l -> {
-				return !StringUtils.isEmpty(l) && !l.startsWith("//");
+				return StringUtils.hasText(l) && !l.startsWith("//");
 			}).map(l -> new File(dir + "/" + l)).toArray(File[]::new);
 		} else {
 			result = new File(dir).listFiles();

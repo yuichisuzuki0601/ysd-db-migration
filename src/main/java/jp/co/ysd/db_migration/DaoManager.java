@@ -15,7 +15,7 @@ import jp.co.ysd.db_migration.dao.Dao;
  *
  */
 @Component
-public class DaoFactory {
+public class DaoManager {
 
 	private static final Map<String, String> DRIVER_DAOKEY_MAP = new HashMap<>();
 	static {

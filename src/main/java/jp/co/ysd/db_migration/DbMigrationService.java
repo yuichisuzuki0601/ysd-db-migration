@@ -36,7 +36,7 @@ public class DbMigrationService {
 	private FileChecker fileChecker;
 
 	@Autowired
-	private DaoFactory factory;
+	private DaoManager factory;
 
 	@Autowired
 	private SqlCompiler sqlCompiler;
@@ -44,56 +44,57 @@ public class DbMigrationService {
 	@Transactional
 	public void execute(ExecMode mode, String rootDir, String dataDir) throws Exception {
 		l.info("db-migration service start.");
+
 		FileAccessor.init(rootDir, dataDir);
-		l.info("mode: " + mode);
-		l.info("root directory: {}ooo{}", FileAccessor.getRootDir(), "hoge");
-		l.info("root directory: " + FileAccessor.getRootDir());
-		Dao dao = factory.get();
-		if (mode == ExecMode.REPLACEINDEX || mode == ExecMode.DROPINDEX) {
+
+		l.info("mode: {}", mode);
+		l.info("root directory: {}", FileAccessor.getRootDir());
+
+		var dao = factory.get();
+		if (mode.some(ExecMode.REPLACEINDEX, ExecMode.DROPINDEX)) {
 			prepareIndex(mode, dao);
 			return;
 		}
-		if (mode == ExecMode.REPLACEVIEW) {
+		if (mode.is(ExecMode.REPLACEVIEW)) {
 			prepareView(mode, dao);
 			return;
 		}
 		// ***
-		if (mode == ExecMode.NORMAL || mode == ExecMode.REBUILD) {
+		if (mode.some(ExecMode.NORMAL, ExecMode.REBUILD)) {
 			fileChecker.checkAllFiles();
 		}
-		if (mode == ExecMode.REBUILD || mode == ExecMode.DROPALL) {
+		if (mode.some(ExecMode.REBUILD, ExecMode.DROPALL)) {
 			dao.dropAllForeignKey();
 			dao.dropAllTableAndView();
 		}
-		if (mode != ExecMode.DROPALL) {
-			List<String> createds = prepareTable(mode, dao);
+		if (mode.not(ExecMode.DROPALL)) {
+			var createds = prepareTable(mode, dao);
 			prepareIndex(mode, dao, createds);
 			prepareData(mode, dao, createds);
 			prepareConstraint(mode, dao, createds);
 			prepareView(mode, dao);
 			applySql(dao);
 		}
+
 		l.info("db-migration service finish.");
 	}
 
 	@SuppressWarnings("unchecked")
 	private List<String> prepareTable(ExecMode mode, Dao dao) throws IOException {
-		List<String> createds = new ArrayList<>();
-		if (!(mode == ExecMode.NORMAL || mode == ExecMode.REBUILD)) {
-			return createds;
-		}
-		File[] defineFiles = FileAccessor.getDefineFiles();
-		if (defineFiles == null) {
-			return createds;
-		}
-		for (File defineFile : defineFiles) {
-			String tableName = FilenameUtils.removeExtension(defineFile.getName());
-			Map<String, Object> define = new ObjectMapper().readValue(defineFile, Map.class);
-			List<Map<String, String>> cols = (List<Map<String, String>>) define.get("cols");
-			String pk = (String) define.get("pk");
-			Object uq = define.get("uq");
-			if (dao.createTable(mode, tableName, cols, pk, uq)) {
-				createds.add(tableName);
+		var createds = new ArrayList<String>();
+		if (mode.some(ExecMode.NORMAL, ExecMode.REBUILD)) {
+			var defineFiles = FileAccessor.getDefineFiles();
+			if (defineFiles != null) {
+				for (var defineFile : defineFiles) {
+					var tableName = FilenameUtils.removeExtension(defineFile.getName());
+					var define = new ObjectMapper().readValue(defineFile, Map.class);
+					var cols = (List<Map<String, String>>) define.get("cols");
+					var pk = (String) define.get("pk");
+					var uq = define.get("uq");
+					if (dao.createTable(mode, tableName, cols, pk, uq)) {
+						createds.add(tableName);
+					}
+				}
 			}
 		}
 		return createds;

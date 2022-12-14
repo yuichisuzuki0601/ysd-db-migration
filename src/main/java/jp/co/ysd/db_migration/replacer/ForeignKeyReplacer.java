@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import jp.co.ysd.db_migration.DaoFactory;
+import jp.co.ysd.db_migration.DaoManager;
 import jp.co.ysd.db_migration.dao.Dao;
 
 // TODO 行指定とかに名前変えた方が良い
@@ -15,7 +15,7 @@ public class ForeignKeyReplacer implements DataReplacer {
 	protected Logger l = LoggerFactory.getLogger(getClass());
 
 	@Autowired
-	private DaoFactory factory;
+	private DaoManager factory;
 
 	@Override
 	public Object replace(Object original) {

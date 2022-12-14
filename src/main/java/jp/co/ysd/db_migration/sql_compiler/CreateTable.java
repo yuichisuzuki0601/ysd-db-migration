@@ -1,6 +1,5 @@
 package jp.co.ysd.db_migration.sql_compiler;
 
-import java.io.File;
 import java.util.List;
 import java.util.Map;
 
@@ -8,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import jp.co.ysd.db_migration.dao.sql.CreateTableSql;
 import jp.co.ysd.db_migration.util.FileAccessor;
 
 /**
@@ -21,13 +21,13 @@ public class CreateTable extends Compile {
 	@Override
 	@SuppressWarnings("unchecked")
 	public String compile(String[] args) throws Exception {
-		String tableName = args[0];
-		File defineFile = FileAccessor.getDefineFile(tableName);
-		Map<String, Object> define = new ObjectMapper().readValue(defineFile, Map.class);
-		List<Map<String, String>> cols = (List<Map<String, String>>) define.get("cols");
-		String pk = (String) define.get("pk");
-		Object uq = define.get("uq");
-		return getDao().getCreateTableSql(tableName, cols, pk, uq);
+		var tableName = args[0];
+		var defineFile = FileAccessor.getDefineFile(tableName);
+		var define = new ObjectMapper().readValue(defineFile, Map.class);
+		var columns = (List<Map<String, String>>) define.get("cols");
+		var pk = (String) define.get("pk");
+		var uq = define.get("uq");
+		return CreateTableSql.get(tableName, columns, pk, uq);
 	}
 
 }

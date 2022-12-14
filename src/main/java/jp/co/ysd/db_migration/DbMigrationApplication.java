@@ -1,15 +1,11 @@
 package jp.co.ysd.db_migration;
 
-import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
 import org.springframework.boot.Banner.Mode;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.ConfigurableApplicationContext;
 
 /**
  *
@@ -19,42 +15,25 @@ import org.springframework.context.ConfigurableApplicationContext;
 @SpringBootApplication
 public class DbMigrationApplication {
 
-	public static void main(String... args) {
-		try {
-			SpringApplication app = new SpringApplication(DbMigrationApplication.class);
-			app.setBannerMode(Mode.OFF);
-			app.setLogStartupInfo(false);
-			System.setProperty("spring.main.allowCircularReferences", "true");
-			System.setProperty("logging.level.org.springframework", "WARN");
-			ConfigurableApplicationContext ctx = app.run(args);
-			CommandLine cl = getCommandLine(args);
-			ctx.getBean(DbMigrationService.class).execute(getMode(cl), getRootDir(cl), getDataDir(cl));
-		} catch (Throwable t) {
-			t.printStackTrace();
-			System.exit(1);
-		}
-		System.exit(0);
+	public static void main(String... args) throws Exception {
+		_main("-mode", "dropall");
+		_main("-rootdir", "../mast/database/mast-web-service", "-datadir", "data-prod");
+		_main("-mode", "dataall", "-rootdir", "../mast/database/mast-web-service", "-datadir", "data-dev");
 	}
 
-	private static CommandLine getCommandLine(String[] orgArgs) throws ParseException {
-		String[] args = Arrays.stream(orgArgs).filter(arg -> !arg.startsWith("--spring")).toArray(String[]::new);
-		Options options = new Options();
-		options.addOption("mode", true, "適用モードを指定します");
-		options.addOption("rootdir", true, "テーブル定義ディレクトリ/データディレクトリのあるディレクトリパスを設定します");
-		options.addOption("datadir", true, "データディレクトリ名を設定します。デフォルトはdataです。");
-		return new DefaultParser().parse(options, args, false);
+	private static final Map<String, String> FIXED_PROPERTIES = new HashMap<>();
+	static {
+		FIXED_PROPERTIES.put("logging.level.org.springframework", "WARN");
+		FIXED_PROPERTIES.put("spring.main.allowCircularReferences", "true");
 	}
 
-	private static ExecMode getMode(CommandLine cl) {
-		return cl.hasOption("mode") ? ExecMode.of(cl.getOptionValue("mode")) : ExecMode.NORMAL;
-	}
-
-	private static String getRootDir(CommandLine cl) {
-		return cl.hasOption("rootdir") ? cl.getOptionValue("rootdir") : null;
-	}
-
-	private static String getDataDir(CommandLine cl) {
-		return cl.hasOption("datadir") ? cl.getOptionValue("datadir") : null;
+	public static void _main(String... args) throws Exception {
+		FIXED_PROPERTIES.entrySet().stream().forEach(e -> System.setProperty(e.getKey(), e.getValue()));
+		var cl = new CommandManager(args);
+		var app = new SpringApplication(DbMigrationApplication.class);
+		app.setBannerMode(Mode.OFF);
+		app.setLogStartupInfo(false);
+		app.run(args).getBean(DbMigrationService.class).execute(cl.getMode(), cl.getRootDir(), cl.getDataDir());
 	}
 
 }

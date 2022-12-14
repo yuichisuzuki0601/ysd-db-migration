@@ -1,5 +1,7 @@
 package jp.co.ysd.db_migration;
 
+import java.util.Arrays;
+
 /**
  *
  * @author yuichi
@@ -23,6 +25,18 @@ public enum ExecMode {
 			}
 		}
 		throw new IllegalArgumentException("no such enum object for the mode: " + mode);
+	}
+
+	public boolean is(ExecMode mode) {
+		return mode == this;
+	}
+
+	public boolean not(ExecMode mode) {
+		return mode != this;
+	}
+
+	public boolean some(ExecMode... modes) {
+		return Arrays.stream(modes).anyMatch(this::is);
 	}
 
 }

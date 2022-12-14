@@ -26,6 +26,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.StringUtils;
 
 import jp.co.ysd.db_migration.ExecMode;
+import jp.co.ysd.db_migration.dao.sql.CreateTableSql;
 import jp.co.ysd.db_migration.replacer.DataReplacer;
 import jp.co.ysd.db_migration.util.FileAccessor;
 import jp.co.ysd.ysd_util.tuple.Tuple2;
@@ -40,7 +41,6 @@ public abstract class Dao {
 	private static final String SQL_DROP_TABLE = "DROP TABLE `%s`;";
 	private static final String SQL_DROP_INDEX = "DROP INDEX `%s` ON %s;";
 	private static final String SQL_DROP_VIEW = "DROP VIEW `%s`;";
-	private static final String SQL_CREATE_TABLE = "CREATE TABLE `%s` (%s);";
 	private static final String SQL_CREATE_INDEX = "CREATE INDEX `%s` ON `%s` (%s);";
 	private static final String SQL_CREATE_FOREIGN_KEY = "ALTER TABLE `%s` ADD FOREIGN KEY (`%s`) REFERENCES `%s` (`%s`) %s;";
 	private static final String SQL_CREATE_VIEW = "CREATE OR REPLACE VIEW `%s` AS %s;";
@@ -97,40 +97,16 @@ public abstract class Dao {
 	}
 
 	public boolean createTable(ExecMode mode, String tableName, List<Map<String, String>> cols, String pk, Object uq) {
-		boolean result = false;
-		boolean condCreate = mode == ExecMode.REBUILD || !existTableAndView(tableName);
+		var result = false;
+		var condCreate = mode.is(ExecMode.REBUILD) || !existTableAndView(tableName);
 		if (condCreate) {
-			String sql = getCreateTableSql(tableName, cols, pk, uq);
+			var sql = CreateTableSql.get(tableName, cols, pk, uq);
 			l.info(sql);
 			j.execute(sql);
 			result = true;
 		}
 		l.info("table:" + tableName + (condCreate ? " was created." : " is already exists."));
 		return result;
-	}
-
-	@SuppressWarnings("unchecked")
-	public String getCreateTableSql(String tableName, List<Map<String, String>> cols, String pk, Object uq) {
-		String colDefine = cols.stream().map(col -> {
-			StringBuilder buf = new StringBuilder();
-			buf.append("`").append(col.get("name")).append("` ").append(col.get("type"));
-			String comment = col.get("comment");
-			if (comment != null) {
-				buf.append(" ").append("COMMENT '").append(comment).append("'");
-			}
-			return buf.toString();
-		}).reduce((l, r) -> l + "," + r).get();
-		colDefine += pk != null ? ",PRIMARY KEY(" + pk + ")" : "";
-		List<String> uqList = new ArrayList<>();
-		if (uq instanceof List) {
-			uqList = (List<String>) uq;
-		} else if (uq instanceof String) {
-			uqList.add((String) uq);
-		}
-		for (String line : uqList) {
-			colDefine += ",UNIQUE(" + line + ")";
-		}
-		return String.format(SQL_CREATE_TABLE, tableName, colDefine);
 	}
 
 	private List<String> selectAllIndexFromTable(String tableName) {

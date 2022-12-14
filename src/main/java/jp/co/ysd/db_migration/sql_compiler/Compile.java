@@ -2,7 +2,7 @@ package jp.co.ysd.db_migration.sql_compiler;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import jp.co.ysd.db_migration.DaoFactory;
+import jp.co.ysd.db_migration.DaoManager;
 import jp.co.ysd.db_migration.dao.Dao;
 
 /**
@@ -13,7 +13,7 @@ import jp.co.ysd.db_migration.dao.Dao;
 public abstract class Compile {
 
 	@Autowired
-	private DaoFactory factory;
+	private DaoManager factory;
 
 	protected Dao getDao() {
 		return factory.get();

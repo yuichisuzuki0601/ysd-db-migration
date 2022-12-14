@@ -48,7 +48,7 @@ public final class FileAccessor {
 	}
 
 	public static File[] getDefineFiles() {
-		File[] result = new File(String.format(DEFINE_DIR, rootDir)).listFiles();
+		var result = new File(String.format(DEFINE_DIR, rootDir)).listFiles();
 		return result != null ? removeIgnoreFiles(result) : new File[0];
 	}
 
@@ -98,11 +98,9 @@ public final class FileAccessor {
 	}
 
 	private static File[] removeIgnoreFiles(File[] files) {
+		var ignoreFiles = new String[] { ".gitkeep", "order.txt" };
 		return Arrays.stream(files).filter(f -> {
-			String fileName = f.getName();
-			boolean cond1 = !".gitkeep".equals(fileName);
-			boolean cond2 = !"order.txt".equals(fileName);
-			return cond1 && cond2;
+			return Arrays.stream(ignoreFiles).allMatch(ignoreFile -> !ignoreFile.equals(f.getName()));
 		}).toArray(File[]::new);
 	}
 

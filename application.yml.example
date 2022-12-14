@@ -7,7 +7,7 @@ spring:
         autoReconnect: true
         allowPublicKeyRetrieval: true
         characterEncoding: utf-8
-        serverTimezone: JST
+        serverTimezone: Asia/Tokyo
         useJDBCCompliantTimezoneShift: false
         useSSL: false
         useTimezone: true

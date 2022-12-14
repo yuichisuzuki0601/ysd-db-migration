@@ -1,4 +1,4 @@
-package jp.co.ysd.db_migration;
+package jp.co.ysd.db_migration.util;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import jp.co.ysd.db_migration.properties.ysd.YsdDbMigrationProperty;
-import jp.co.ysd.db_migration.util.FileAccessor;
 
 @Service
 public class FileChecker {

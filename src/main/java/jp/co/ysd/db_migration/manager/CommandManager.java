@@ -1,4 +1,4 @@
-package jp.co.ysd.db_migration;
+package jp.co.ysd.db_migration.manager;
 
 import java.util.Arrays;
 
@@ -6,6 +6,8 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+
+import jp.co.ysd.db_migration.ExecMode;
 
 /**
  * 

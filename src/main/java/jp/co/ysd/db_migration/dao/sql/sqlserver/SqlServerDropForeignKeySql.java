@@ -1,6 +1,6 @@
 package jp.co.ysd.db_migration.dao.sql.sqlserver;
 
-import jp.co.ysd.db_migration.util.Template;
+import jp.co.ysd.ysd_util.string.Template;
 
 /**
  * 

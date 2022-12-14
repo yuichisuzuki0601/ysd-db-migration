@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import jp.co.ysd.db_migration.util.Template;
+import jp.co.ysd.ysd_util.string.Template;
 
 /**
  * 

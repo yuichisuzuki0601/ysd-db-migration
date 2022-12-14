@@ -3,8 +3,8 @@ package jp.co.ysd.db_migration.replacer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import jp.co.ysd.db_migration.DaoManager;
 import jp.co.ysd.db_migration.dao.Dao;
+import jp.co.ysd.db_migration.manager.DaoManager;
 
 /**
  *
@@ -15,7 +15,7 @@ import jp.co.ysd.db_migration.dao.Dao;
 public class PointerReplacer implements DataReplacer {
 
 	@Autowired
-	private DaoManager factory;
+	private DaoManager daoManager;
 
 	@Override
 	public Object replace(Object original) {
@@ -26,7 +26,7 @@ public class PointerReplacer implements DataReplacer {
 				String tableName = info[0];
 				String id = info[1];
 				String colmnName = info[2];
-				Dao dao = factory.get();
+				Dao dao = daoManager.get();
 				Object o = dao.selectDataById(tableName, colmnName, id);
 				original = o.toString();
 			}

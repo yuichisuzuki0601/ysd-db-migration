@@ -1,5 +1,6 @@
 package jp.co.ysd.db_migration.dao;
 
+import static jp.co.ysd.db_migration.util.SqlUtil.*;
 import static jp.co.ysd.ysd_util.stream.StreamWrapperFactory.*;
 import static jp.co.ysd.ysd_util.string.YsdStringUtil.*;
 
@@ -177,7 +178,7 @@ public abstract class Dao {
 			StringJoiner valsPart = new StringJoiner(",", "(", ")");
 			List<Object> vals = new ArrayList<>();
 			datum.entrySet().stream().forEach(e -> {
-				colsPart.add("`" + e.getKey() + "`");
+				colsPart.add(bq(e.getKey()));
 				Object value = e.getValue();
 				if (value != null) {
 					valsPart.add("?");
@@ -210,7 +211,7 @@ public abstract class Dao {
 		StringJoiner colsPart = new StringJoiner(",", "(", ")");
 		StringJoiner valsPart = new StringJoiner(",", "(", ")");
 		datum0.entrySet().stream().forEach(e -> {
-			colsPart.add("`" + e.getKey() + "`");
+			colsPart.add(bq(e.getKey()));
 			valsPart.add("?");
 		});
 		String sql = String.format(SQL_INSERT, tableName, colsPart.toString(), valsPart.toString());

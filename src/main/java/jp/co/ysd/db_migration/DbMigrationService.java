@@ -19,9 +19,11 @@ import org.springframework.util.StringUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jp.co.ysd.db_migration.dao.Dao;
+import jp.co.ysd.db_migration.manager.DaoManager;
 import jp.co.ysd.db_migration.sql_compiler.SqlCompiler;
 import jp.co.ysd.db_migration.util.CsvToJsonTranspiler;
 import jp.co.ysd.db_migration.util.FileAccessor;
+import jp.co.ysd.db_migration.util.FileChecker;
 import jp.co.ysd.ysd_util.string.YsdStringUtil;
 
 /**
@@ -30,16 +32,16 @@ import jp.co.ysd.ysd_util.string.YsdStringUtil;
 @Service
 public class DbMigrationService {
 
-	private Logger l = LoggerFactory.getLogger(getClass());
+	@Autowired
+	private DaoManager daoManager;
 
 	@Autowired
 	private FileChecker fileChecker;
 
 	@Autowired
-	private DaoManager factory;
-
-	@Autowired
 	private SqlCompiler sqlCompiler;
+
+	private Logger l = LoggerFactory.getLogger(getClass());
 
 	@Transactional
 	public void execute(ExecMode mode, String rootDir, String dataDir) throws Exception {
@@ -50,7 +52,7 @@ public class DbMigrationService {
 		l.info("mode: {}", mode);
 		l.info("root directory: {}", FileAccessor.getRootDir());
 
-		var dao = factory.get();
+		var dao = daoManager.get();
 		if (mode.some(ExecMode.REPLACEINDEX, ExecMode.DROPINDEX)) {
 			prepareIndex(mode, dao);
 			return;
@@ -59,7 +61,9 @@ public class DbMigrationService {
 			prepareView(mode, dao);
 			return;
 		}
+
 		// ***
+
 		if (mode.some(ExecMode.NORMAL, ExecMode.REBUILD)) {
 			fileChecker.checkAllFiles();
 		}
@@ -139,22 +143,24 @@ public class DbMigrationService {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private void prepareData(ExecMode mode, Dao dao, List<String> createds) throws IOException {
-		File[] dataFiles = FileAccessor.getOrderdDataFiles();
-		if (dataFiles == null) {
-			return;
-		}
-		for (File dataFile : dataFiles) {
-			if (dataFile.exists()) {
-				String tableName = FilenameUtils.removeExtension(dataFile.getName()).replace("-data", "");
-				boolean cond1 = (mode == ExecMode.NORMAL || mode == ExecMode.REBUILD) && createds.contains(tableName);
-				boolean cond2 = mode == ExecMode.DATAALL;
-				if (cond1 || cond2) {
-					String extension = FilenameUtils.getExtension(dataFile.getName());
-					if ("csv".equals(extension)) {
-						prepareCsvData(dataFile, tableName, dao);
-					} else if ("json".equals(extension)) {
-						prepareJsonData(dataFile, tableName, dao);
+		var dataFiles = FileAccessor.getOrderdDataFiles();
+		if (dataFiles != null) {
+			for (var dataFile : dataFiles) {
+				if (dataFile.exists()) {
+					var tableName = FilenameUtils.removeExtension(dataFile.getName()).replace("-data", "");
+					var cond1 = mode.some(ExecMode.NORMAL, ExecMode.REBUILD) && createds.contains(tableName);
+					var cond2 = mode.is(ExecMode.DATAALL);
+					if (cond1 || cond2) {
+						var extension = FilenameUtils.getExtension(dataFile.getName());
+						if ("csv".equals(extension)) {
+							var json = CsvToJsonTranspiler.transpile(dataFile.getPath());
+							dao.bulkInsert(tableName, new ObjectMapper().readValue(json, List.class));
+						} else if ("json".equals(extension)) {
+							var json = new String(Files.readAllBytes(Paths.get(dataFile.getPath())));
+							dao.insert(tableName, new ObjectMapper().readValue(json, List.class));
+						}
 					}
 				}
 			}
@@ -162,69 +168,54 @@ public class DbMigrationService {
 	}
 
 	@SuppressWarnings("unchecked")
-	private void prepareJsonData(File dataFile, String tableName, Dao dao) throws IOException {
-		String json = new String(Files.readAllBytes(Paths.get(dataFile.getPath())));
-		dao.insert(tableName, new ObjectMapper().readValue(json, List.class));
-	}
-
-	@SuppressWarnings("unchecked")
-	private void prepareCsvData(File dataFile, String tableName, Dao dao) throws IOException {
-		String json = CsvToJsonTranspiler.transpile(dataFile.getPath());
-		dao.bulkInsert(tableName, new ObjectMapper().readValue(json, List.class));
-	}
-
-	@SuppressWarnings("unchecked")
 	private void prepareConstraint(ExecMode mode, Dao dao, List<String> createds) throws IOException {
-		if (!(mode == ExecMode.NORMAL || mode == ExecMode.REBUILD)) {
-			return;
-		}
-		for (String tableName : createds) {
-			File constraintFile = FileAccessor.getConstraintFile(tableName);
-			if (constraintFile.exists()) {
-				Map<String, Object> constraint = new ObjectMapper().readValue(constraintFile, Map.class);
-				List<Map<String, Object>> cols = (List<Map<String, Object>>) constraint.get("cols");
-				dao.createForeignKey(tableName, cols);
+		if (mode.some(ExecMode.NORMAL, ExecMode.REBUILD)) {
+			for (var tableName : createds) {
+				var constraintFile = FileAccessor.getConstraintFile(tableName);
+				if (constraintFile.exists()) {
+					Map<String, Object> constraint = new ObjectMapper().readValue(constraintFile, Map.class);
+					var cols = (List<Map<String, Object>>) constraint.get("cols");
+					dao.createForeignKey(tableName, cols);
+				}
 			}
 		}
 	}
 
 	@SuppressWarnings("unchecked")
 	private void prepareView(ExecMode mode, Dao dao) throws IOException {
-		if (!(mode == ExecMode.NORMAL || mode == ExecMode.REBUILD || mode == ExecMode.REPLACEVIEW)) {
-			return;
-		}
-		File[] viewFiles = FileAccessor.getViewFiles();
-		for (File viewFile : viewFiles) {
-			String viewName = FilenameUtils.removeExtension(viewFile.getName()).replaceAll("-view", "");
-			Map<String, Object> viewSetting = new ObjectMapper().readValue(viewFile, Map.class);
-			try {
-				dao.createView(mode == ExecMode.REPLACEVIEW, viewName, viewSetting);
-			} catch (Exception e) {
-				if (mode != ExecMode.REPLACEVIEW) {
-					throw new IOException(e);
+		if (mode.some(ExecMode.NORMAL, ExecMode.REBUILD, ExecMode.REPLACEVIEW)) {
+			var viewFiles = FileAccessor.getViewFiles();
+			for (var viewFile : viewFiles) {
+				var viewName = FilenameUtils.removeExtension(viewFile.getName()).replaceAll("-view", "");
+				Map<String, Object> viewSetting = new ObjectMapper().readValue(viewFile, Map.class);
+				try {
+					dao.createView(mode.is(ExecMode.REPLACEVIEW), viewName, viewSetting);
+				} catch (Exception e) {
+					if (mode.not(ExecMode.REPLACEVIEW)) {
+						throw new IOException(e);
+					}
 				}
 			}
 		}
 	}
 
 	private void applySql(Dao dao) throws Exception {
-		File[] sqlFiles = FileAccessor.getOrderdSqlFiles();
-		if (sqlFiles == null) {
-			return;
-		}
-		for (File sqlFile : sqlFiles) {
-			if (sqlFile.exists()) {
-				String extension = FilenameUtils.getExtension(sqlFile.getName());
-				if ("sql".equals(extension)) {
-					String sqls = YsdStringUtil.strip(Files.lines(sqlFile.toPath())
-							.filter(l -> StringUtils.hasText(l) && !l.startsWith("//") && !l.startsWith("--"))
-							.reduce("", (l, r) -> l + r + " "));
-					StringBuilder compiled = new StringBuilder();
-					for (String sql : sqls.split(";")) {
-						compiled.append(sqlCompiler.compile(sql.trim()));
+		var sqlFiles = FileAccessor.getOrderdSqlFiles();
+		if (sqlFiles != null) {
+			for (var sqlFile : sqlFiles) {
+				if (sqlFile.exists()) {
+					var extension = FilenameUtils.getExtension(sqlFile.getName());
+					if ("sql".equals(extension)) {
+						var sqls = YsdStringUtil.strip(Files.lines(sqlFile.toPath())
+								.filter(l -> StringUtils.hasText(l) && !l.startsWith("//") && !l.startsWith("--"))
+								.reduce("", (l, r) -> l + r + " "));
+						var compiled = new StringBuilder();
+						for (var sql : sqls.split(";")) {
+							compiled.append(sqlCompiler.compile(sql.trim()));
+						}
+						l.info(sqlFile.getName() + " will be executed.");
+						dao.execute(compiled.toString());
 					}
-					l.info(sqlFile.getName() + " will be executed.");
-					dao.execute(compiled.toString());
 				}
 			}
 		}

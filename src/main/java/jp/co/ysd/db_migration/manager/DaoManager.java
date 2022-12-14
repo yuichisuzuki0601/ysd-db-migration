@@ -1,4 +1,4 @@
-package jp.co.ysd.db_migration;
+package jp.co.ysd.db_migration.manager;
 
 import java.util.HashMap;
 import java.util.Map;

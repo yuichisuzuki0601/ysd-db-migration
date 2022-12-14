@@ -7,6 +7,8 @@ import org.springframework.boot.Banner.Mode;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import jp.co.ysd.db_migration.manager.CommandManager;
+
 /**
  *
  * @author yuichi
@@ -29,11 +31,11 @@ public class DbMigrationApplication {
 
 	public static void _main(String... args) throws Exception {
 		FIXED_PROPERTIES.entrySet().stream().forEach(e -> System.setProperty(e.getKey(), e.getValue()));
-		var cl = new CommandManager(args);
+		var cm = new CommandManager(args);
 		var app = new SpringApplication(DbMigrationApplication.class);
 		app.setBannerMode(Mode.OFF);
 		app.setLogStartupInfo(false);
-		app.run(args).getBean(DbMigrationService.class).execute(cl.getMode(), cl.getRootDir(), cl.getDataDir());
+		app.run(args).getBean(DbMigrationService.class).execute(cm.getMode(), cm.getRootDir(), cm.getDataDir());
 	}
 
 }

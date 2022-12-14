@@ -103,7 +103,7 @@ public class DbMigrationService {
 	@SuppressWarnings("unchecked")
 	private void prepareIndexCore(ExecMode mode, Dao dao, File indexFile, String tableName) throws IOException {
 		var index = new ObjectMapper().readValue(indexFile, Map.class);
-		var indexCols = (List<Map<String, Object>>) index.get("cols");
+		var indexCols = (List<Map<String, String>>) index.get("cols");
 		try {
 			dao.dropIndexFromTable(tableName);
 			if (mode.not(ExecMode.DROPINDEX)) {

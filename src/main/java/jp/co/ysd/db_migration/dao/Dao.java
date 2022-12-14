@@ -5,7 +5,6 @@ import static jp.co.ysd.ysd_util.string.YsdStringUtil.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -25,9 +24,15 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.StringUtils;
 
 import jp.co.ysd.db_migration.ExecMode;
+import jp.co.ysd.db_migration.dao.sql.CreateForeignKeySql;
+import jp.co.ysd.db_migration.dao.sql.CreateIndexSql;
 import jp.co.ysd.db_migration.dao.sql.CreateTableSql;
+import jp.co.ysd.db_migration.dao.sql.CreateViewSql;
+import jp.co.ysd.db_migration.dao.sql.DropIndexSql;
 import jp.co.ysd.db_migration.dao.sql.DropTableSql;
 import jp.co.ysd.db_migration.dao.sql.DropViewSql;
+import jp.co.ysd.db_migration.dao.sql.SelectDataByIdSql;
+import jp.co.ysd.db_migration.dao.sql.SelectDataOrderByIdSql;
 import jp.co.ysd.db_migration.replacer.DataReplacer;
 import jp.co.ysd.db_migration.util.FileAccessor;
 import jp.co.ysd.ysd_util.tuple.Tuple2;
@@ -38,17 +43,6 @@ import jp.co.ysd.ysd_util.tuple.Tuple2;
  *
  */
 public abstract class Dao {
-
-	private static final String SQL_DROP_INDEX = "DROP INDEX `%s` ON %s;";
-	private static final String SQL_CREATE_INDEX = "CREATE INDEX `%s` ON `%s` (%s);";
-
-	private static final String SQL_CREATE_FOREIGN_KEY = "ALTER TABLE `%s` ADD FOREIGN KEY (`%s`) REFERENCES `%s` (`%s`) %s;";
-
-	private static final String SQL_CREATE_VIEW = "CREATE OR REPLACE VIEW `%s` AS %s;";
-
-	private static final String SQL_SELECT_BY_ID = "SELECT `%s` FROM `%s` WHERE id = %s;";
-
-	private static final String SQL_SELECT_ORDER_BY_ID = "SELECT `%s` FROM `%s` ORDER BY id;";
 
 	private static final String SQL_INSERT = "INSERT INTO `%s` %s VALUES %s;";
 
@@ -70,78 +64,84 @@ public abstract class Dao {
 
 	protected abstract String getSelectAllIndexFromTableSql(String tableName);
 
-	private void dropTable(String tableName) {
-		execute(DropTableSql.get(tableName));
-	}
-
-	private void dropView(String viewName) {
-		execute(DropViewSql.get(viewName));
-	}
-
-	private List<Tuple2<String, String>> selectAllTableAndView() {
-		return j.query(getSelectAllTableAndViewSql(),
-				(rs, rowNum) -> new Tuple2<>(rs.getString("name"), rs.getString("type")));
+	public void execute(String sqls) {
+		for (var shot : sqls.split(";")) {
+			var sql = shot.trim();
+			l.info(sql);
+			j.execute(sql);
+		}
 	}
 
 	public void dropAllTableAndView() {
-		selectAllTableAndView().forEach(tableInfo -> {
+		var tableInfos = j.query(getSelectAllTableAndViewSql(),
+				(rs, rowNum) -> new Tuple2<>(rs.getString("name"), rs.getString("type")));
+		for (var tableInfo : tableInfos) {
 			var name = tableInfo.one();
 			var type = tableInfo.two();
-			if ("VIEW".equals(type)) {
-				dropView(name);
-			} else {
-				dropTable(name);
-			}
-		});
+			execute("VIEW".equals(type) ? DropViewSql.get(name) : DropTableSql.get(name));
+		}
 	}
 
 	public boolean createTable(ExecMode mode, String tableName, List<Map<String, String>> cols, String pk, Object uq) {
 		var result = false;
 		var condCreate = mode.is(ExecMode.REBUILD) || !existTableAndView(tableName);
 		if (condCreate) {
-			var sql = CreateTableSql.get(tableName, cols, pk, uq);
-			l.info(sql);
-			j.execute(sql);
+			execute(CreateTableSql.get(tableName, cols, pk, uq));
 			result = true;
 		}
 		l.info("table:" + tableName + (condCreate ? " was created." : " is already exists."));
 		return result;
 	}
 
-	private List<String> selectAllIndexFromTable(String tableName) {
-		return j.query(getSelectAllIndexFromTableSql(tableName), (rs, rowNum) -> rs.getString("Key_name"));
+	@SuppressWarnings("unchecked")
+	public void createView(boolean force, String viewName, Map<String, Object> viewSetting) throws IOException {
+		var condCreate = force || !existTableAndView(viewName);
+		if (condCreate) {
+			var templatePath = FileAccessor.getViewTemplateFile((String) viewSetting.get("template")).toPath();
+			var parameters = (Map<String, Object>) viewSetting.get("parameters");
+			var targetSql = strip(stream(Files.readAllLines(templatePath)).reduce((l, r) -> l + " " + r));
+			for (var parameter : parameters.entrySet()) {
+				targetSql = targetSql.replaceAll("\\$\\{" + parameter.getKey() + "\\}",
+						parameter.getValue().toString());
+			}
+			execute(CreateViewSql.get(viewName, targetSql));
+		}
+		l.info("view:" + viewName + (condCreate ? " was created." : " is already exists."));
 	}
 
 	public void dropIndexFromTable(String tableName) {
-		var indexNames = selectAllIndexFromTable(tableName);
+		var indexNames = j.query(getSelectAllIndexFromTableSql(tableName), (rs, rowNum) -> rs.getString("Key_name"));
 		for (var indexName : indexNames) {
-			var sql = String.format(SQL_DROP_INDEX, indexName, tableName);
-			l.info(sql);
-			j.execute(sql);
+			execute(DropIndexSql.get(indexName, tableName));
 		}
 	}
 
-	public void createIndex(String tableName, List<Map<String, Object>> cols) {
-		execute(getCreateIndexSql(tableName, cols));
-	}
-
-	public String getCreateIndexSql(String tableName, List<Map<String, Object>> cols) {
-		StringBuilder sql = new StringBuilder();
-		for (Map<String, Object> col : cols) {
-			sql.append(String.format(SQL_CREATE_INDEX, col.get("index_name"), tableName, col.get("col")));
+	public String getCreateIndexSql(String tableName, List<Map<String, String>> cols) {
+		var sql = new StringBuilder();
+		for (var col : cols) {
+			sql.append(CreateIndexSql.get(col.get("index_name"), tableName, col.get("col")));
 		}
 		return sql.toString();
 	}
 
-	private List<Map<String, Object>> selectAllForeignKey() {
-		return j.query(getSelectAllForeignKeySql(), (rs, rowNum) -> {
-			var map = new HashMap<String, Object>();
+	public void createIndex(String tableName, List<Map<String, String>> cols) {
+		execute(getCreateIndexSql(tableName, cols));
+	}
+
+	public String getDropAllForeignKeySql() {
+		var allForeignKey = j.query(getSelectAllForeignKeySql(), (rs, rowNum) -> {
+			var map = new HashMap<String, String>();
 			var meta = rs.getMetaData();
 			for (var i = 1; i <= meta.getColumnCount(); ++i) {
-				map.put(meta.getColumnLabel(i), rs.getObject(i));
+				map.put(meta.getColumnLabel(i), rs.getString(i));
 			}
 			return map;
 		});
+		var sql = new StringBuilder();
+		for (var fk : allForeignKey) {
+			sql.append(getDropForeignKeySql(fk.get("table_name"), fk.get("foreign_key_name")));
+		}
+		return sql.toString();
 	}
 
 	public void dropAllForeignKey() {
@@ -151,59 +151,19 @@ public abstract class Dao {
 		}
 	}
 
-	public String getDropAllForeignKeySql() {
+	@SuppressWarnings("unchecked")
+	public String getCreateForeignKeySql(String tableName, List<Map<String, Object>> cols) {
 		var sql = new StringBuilder();
-		for (var fk : selectAllForeignKey()) {
-			sql.append(getDropForeignKeySql((String) fk.get("table_name"), (String) fk.get("foreign_key_name")));
+		for (var col : cols) {
+			var ref = (Map<String, String>) col.get("references");
+			sql.append(CreateForeignKeySql.get(tableName, (String) col.get("name"), ref.get("table"), ref.get("col"),
+					(String) col.get("option")));
 		}
 		return sql.toString();
 	}
 
 	public void createForeignKey(String tableName, List<Map<String, Object>> cols) {
 		execute(getCreateForeignKeySql(tableName, cols));
-	}
-
-	@SuppressWarnings("unchecked")
-	public String getCreateForeignKeySql(String tableName, List<Map<String, Object>> cols) {
-		StringBuilder sql = new StringBuilder();
-		for (Map<String, Object> col : cols) {
-			Map<String, String> ref = (Map<String, String>) col.get("references");
-			sql.append(String.format(SQL_CREATE_FOREIGN_KEY, tableName, col.get("name"), ref.get("table"),
-					ref.get("col"), col.get("option")));
-		}
-		return sql.toString();
-	}
-
-	@SuppressWarnings("unchecked")
-	public void createView(boolean force, String viewName, Map<String, Object> viewSetting) throws IOException {
-		boolean condCreate = force || !existTableAndView(viewName);
-		if (condCreate) {
-			Path templatePath = FileAccessor.getViewTemplateFile((String) viewSetting.get("template")).toPath();
-			Map<String, Object> parameters = (Map<String, Object>) viewSetting.get("parameters");
-			execute(getCreateViewSql(viewName, templatePath, parameters));
-		}
-		l.info("view:" + viewName + (condCreate ? " was created." : " is already exists."));
-	}
-
-	public String getCreateViewSql(String viewName, Path templatePath, Map<String, Object> parameters)
-			throws IOException {
-		String targetSql = strip(stream(Files.readAllLines(templatePath)).reduce((l, r) -> l + " " + r));
-		for (Entry<String, Object> parameter : parameters.entrySet()) {
-			targetSql = targetSql.replaceAll("\\$\\{" + parameter.getKey() + "\\}", parameter.getValue().toString());
-		}
-		return String.format(SQL_CREATE_VIEW, viewName, targetSql);
-	}
-
-	public Object selectDataById(String tableName, String colmuName, String id) {
-		return j.queryForObject(String.format(SQL_SELECT_BY_ID, colmuName, tableName, id), (rs, rowNum) -> {
-			return rs.getObject(1);
-		});
-	}
-
-	public List<Object> selectDataOrderById(String tableName, String colmuName) {
-		return j.query(String.format(SQL_SELECT_ORDER_BY_ID, colmuName, tableName), (rs, rowNum) -> {
-			return rs.getObject(1);
-		});
 	}
 
 	public int insert(String tableName, Map<String, Object> data) {
@@ -286,12 +246,12 @@ public abstract class Dao {
 		return Arrays.stream(result).reduce((left, right) -> left + right).getAsInt();
 	}
 
-	public void execute(String sqls) {
-		for (var shot : sqls.split(";")) {
-			var sql = shot.trim();
-			l.info(sql);
-			j.execute(sql);
-		}
+	public Object selectDataById(String tableName, String column, String id) {
+		return j.queryForObject(SelectDataByIdSql.get(column, tableName, id), (rs, rowNum) -> rs.getObject(1));
+	}
+
+	public List<Object> selectDataOrderById(String tableName, String column) {
+		return j.query(SelectDataOrderByIdSql.get(column, tableName), (rs, rowNum) -> rs.getObject(1));
 	}
 
 }

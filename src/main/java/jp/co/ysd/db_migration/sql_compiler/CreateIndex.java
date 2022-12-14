@@ -25,7 +25,7 @@ public class CreateIndex extends Compile {
 		File indexFile = FileAccessor.getIndexFile(tableName);
 		if (indexFile.exists()) {
 			Map<String, Object> index = new ObjectMapper().readValue(indexFile, Map.class);
-			List<Map<String, Object>> cols = (List<Map<String, Object>>) index.get("cols");
+			List<Map<String, String>> cols = (List<Map<String, String>>) index.get("cols");
 			return getDao().getCreateIndexSql(tableName, cols);
 		} else {
 			return "";

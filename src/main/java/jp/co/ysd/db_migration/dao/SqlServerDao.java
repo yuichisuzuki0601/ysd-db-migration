@@ -2,6 +2,12 @@ package jp.co.ysd.db_migration.dao;
 
 import org.springframework.stereotype.Component;
 
+import jp.co.ysd.db_migration.dao.sql.sqlserver.SqlServerDropForeignKeySql;
+import jp.co.ysd.db_migration.dao.sql.sqlserver.SqlServerExistTableAndViewSql;
+import jp.co.ysd.db_migration.dao.sql.sqlserver.SqlServerSelectAllForeignKeySql;
+import jp.co.ysd.db_migration.dao.sql.sqlserver.SqlServerSelectAllIndexFromTableSql;
+import jp.co.ysd.db_migration.dao.sql.sqlserver.SqlServerSelectAllTableAndViewSql;
+
 /**
  * 
  * @author yuichi
@@ -10,35 +16,29 @@ import org.springframework.stereotype.Component;
 @Component
 public class SqlServerDao extends Dao {
 
-	private static final String SQL_EXIST_TBL_AND_VIEW = "SELECT 1 FROM Sys.Tables WHERE name = ?";
-	private static final String SQL_SELECT_ALL_TBL_AND_VIEW = "SELECT name FROM sys.objects WHERE type = 'U'";
-	private static final String SQL_SELECT_FK = "SELECT f.name AS foreign_key_name, OBJECT_NAME(f.parent_object_id) AS table_name FROM sys.foreign_keys AS f INNER JOIN sys.foreign_key_columns AS fc ON f.object_id = fc.constraint_object_id;";
-	private static final String SQL_DROP_FK = "ALTER TABLE %s DROP CONSTRAINT %s;";
-
 	@Override
 	protected boolean existTableAndView(String name) {
-		return !j.query(SQL_EXIST_TBL_AND_VIEW, (rs, rowNum) -> rs.getObject(1), name).isEmpty();
+		return !j.query(SqlServerExistTableAndViewSql.get(), (rs, rowNum) -> rs.getObject(1), name).isEmpty();
 	}
 
 	@Override
 	protected String getSelectAllTableAndViewSql() {
-		return SQL_SELECT_ALL_TBL_AND_VIEW;
+		return SqlServerSelectAllTableAndViewSql.get();
 	}
 
 	@Override
 	protected String getSelectAllForeignKeySql() {
-		return SQL_SELECT_FK;
+		return SqlServerSelectAllForeignKeySql.get();
 	}
 
 	@Override
 	protected String getDropForeignKeySql(String tableName, String foreignKey) {
-		return SQL_DROP_FK;
+		return SqlServerDropForeignKeySql.get(tableName, foreignKey);
 	}
 
 	@Override
 	protected String getSelectAllIndexFromTableSql(String tableName) {
-		// TODO 実装
-		return null;
+		return SqlServerSelectAllIndexFromTableSql.get(tableName);
 	}
 
 }

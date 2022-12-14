@@ -18,8 +18,6 @@ import com.fasterxml.jackson.dataformat.csv.CsvMapper;
  */
 public final class CsvToJsonTranspiler {
 
-	private static final ObjectMapper OM = new ObjectMapper();
-
 	public static String transpile(String filePath) throws IOException {
 		var result = new ArrayList<Map<String, Object>>();
 		try (var br = Files.newBufferedReader(Paths.get(filePath))) {
@@ -37,7 +35,7 @@ public final class CsvToJsonTranspiler {
 				}
 				result.add(datum);
 			}
-			return OM.writeValueAsString(result);
+			return new ObjectMapper().writeValueAsString(result);
 		}
 	}
 

@@ -32,6 +32,8 @@ import jp.co.ysd.ysd_util.string.YsdStringUtil;
 @Service
 public class DbMigrationService {
 
+	private static final ObjectMapper OM = new ObjectMapper();
+
 	@Autowired
 	private DaoManager daoManager;
 
@@ -91,7 +93,7 @@ public class DbMigrationService {
 			if (defineFiles != null) {
 				for (var defineFile : defineFiles) {
 					var tableName = FilenameUtils.removeExtension(defineFile.getName());
-					var define = new ObjectMapper().readValue(defineFile, Map.class);
+					var define = OM.readValue(defineFile, Map.class);
 					var cols = (List<Map<String, String>>) define.get("cols");
 					var pk = (String) define.get("pk");
 					var uq = define.get("uq");
@@ -106,7 +108,7 @@ public class DbMigrationService {
 
 	@SuppressWarnings("unchecked")
 	private void prepareIndexCore(ExecMode mode, Dao dao, File indexFile, String tableName) throws IOException {
-		var index = new ObjectMapper().readValue(indexFile, Map.class);
+		var index = OM.readValue(indexFile, Map.class);
 		var indexCols = (List<Map<String, String>>) index.get("cols");
 		try {
 			dao.dropIndexFromTable(tableName);
@@ -156,10 +158,10 @@ public class DbMigrationService {
 						var extension = FilenameUtils.getExtension(dataFile.getName());
 						if ("csv".equals(extension)) {
 							var json = CsvToJsonTranspiler.transpile(dataFile.getPath());
-							dao.bulkInsert(tableName, new ObjectMapper().readValue(json, List.class));
+							dao.bulkInsert(tableName, OM.readValue(json, List.class));
 						} else if ("json".equals(extension)) {
 							var json = new String(Files.readAllBytes(Paths.get(dataFile.getPath())));
-							dao.insert(tableName, new ObjectMapper().readValue(json, List.class));
+							dao.insert(tableName, OM.readValue(json, List.class));
 						}
 					}
 				}
@@ -173,7 +175,7 @@ public class DbMigrationService {
 			for (var tableName : createds) {
 				var constraintFile = FileAccessor.getConstraintFile(tableName);
 				if (constraintFile.exists()) {
-					Map<String, Object> constraint = new ObjectMapper().readValue(constraintFile, Map.class);
+					Map<String, Object> constraint = OM.readValue(constraintFile, Map.class);
 					var cols = (List<Map<String, Object>>) constraint.get("cols");
 					dao.createForeignKey(tableName, cols);
 				}
@@ -187,7 +189,7 @@ public class DbMigrationService {
 			var viewFiles = FileAccessor.getViewFiles();
 			for (var viewFile : viewFiles) {
 				var viewName = FilenameUtils.removeExtension(viewFile.getName()).replaceAll("-view", "");
-				Map<String, Object> viewSetting = new ObjectMapper().readValue(viewFile, Map.class);
+				Map<String, Object> viewSetting = OM.readValue(viewFile, Map.class);
 				try {
 					dao.createView(mode.is(ExecMode.REPLACEVIEW), viewName, viewSetting);
 				} catch (Exception e) {

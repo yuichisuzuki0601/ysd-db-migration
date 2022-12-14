@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.PreparedStatement;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,6 +26,8 @@ import org.springframework.util.StringUtils;
 
 import jp.co.ysd.db_migration.ExecMode;
 import jp.co.ysd.db_migration.dao.sql.CreateTableSql;
+import jp.co.ysd.db_migration.dao.sql.DropTableSql;
+import jp.co.ysd.db_migration.dao.sql.DropViewSql;
 import jp.co.ysd.db_migration.replacer.DataReplacer;
 import jp.co.ysd.db_migration.util.FileAccessor;
 import jp.co.ysd.ysd_util.tuple.Tuple2;
@@ -38,14 +39,17 @@ import jp.co.ysd.ysd_util.tuple.Tuple2;
  */
 public abstract class Dao {
 
-	private static final String SQL_DROP_TABLE = "DROP TABLE `%s`;";
 	private static final String SQL_DROP_INDEX = "DROP INDEX `%s` ON %s;";
-	private static final String SQL_DROP_VIEW = "DROP VIEW `%s`;";
 	private static final String SQL_CREATE_INDEX = "CREATE INDEX `%s` ON `%s` (%s);";
+
 	private static final String SQL_CREATE_FOREIGN_KEY = "ALTER TABLE `%s` ADD FOREIGN KEY (`%s`) REFERENCES `%s` (`%s`) %s;";
+
 	private static final String SQL_CREATE_VIEW = "CREATE OR REPLACE VIEW `%s` AS %s;";
+
 	private static final String SQL_SELECT_BY_ID = "SELECT `%s` FROM `%s` WHERE id = %s;";
+
 	private static final String SQL_SELECT_ORDER_BY_ID = "SELECT `%s` FROM `%s` ORDER BY id;";
+
 	private static final String SQL_INSERT = "INSERT INTO `%s` %s VALUES %s;";
 
 	protected Logger l = LoggerFactory.getLogger(getClass());
@@ -62,32 +66,27 @@ public abstract class Dao {
 
 	protected abstract String getSelectAllForeignKeySql();
 
-	protected abstract String getDropForeignKeySql();
+	protected abstract String getDropForeignKeySql(String tableName, String foreignKey);
 
 	protected abstract String getSelectAllIndexFromTableSql(String tableName);
 
 	private void dropTable(String tableName) {
-		String sql = String.format(SQL_DROP_TABLE, tableName);
-		l.info(sql);
-		j.execute(sql);
+		execute(DropTableSql.get(tableName));
 	}
 
 	private void dropView(String viewName) {
-		String sql = String.format(SQL_DROP_VIEW, viewName);
-		l.info(sql);
-		j.execute(sql);
+		execute(DropViewSql.get(viewName));
 	}
 
 	private List<Tuple2<String, String>> selectAllTableAndView() {
-		return j.query(getSelectAllTableAndViewSql(), (rs, rowNum) -> {
-			return new Tuple2<>(rs.getString("name"), rs.getString("type"));
-		});
+		return j.query(getSelectAllTableAndViewSql(),
+				(rs, rowNum) -> new Tuple2<>(rs.getString("name"), rs.getString("type")));
 	}
 
 	public void dropAllTableAndView() {
 		selectAllTableAndView().forEach(tableInfo -> {
-			String name = tableInfo.one();
-			String type = tableInfo.two();
+			var name = tableInfo.one();
+			var type = tableInfo.two();
 			if ("VIEW".equals(type)) {
 				dropView(name);
 			} else {
@@ -110,15 +109,13 @@ public abstract class Dao {
 	}
 
 	private List<String> selectAllIndexFromTable(String tableName) {
-		return j.query(getSelectAllIndexFromTableSql(tableName), (rs, rowNum) -> {
-			return rs.getString("Key_name");
-		});
+		return j.query(getSelectAllIndexFromTableSql(tableName), (rs, rowNum) -> rs.getString("Key_name"));
 	}
 
 	public void dropIndexFromTable(String tableName) {
-		List<String> indexNames = selectAllIndexFromTable(tableName);
-		for (String indexName : indexNames) {
-			String sql = String.format(SQL_DROP_INDEX, indexName, tableName);
+		var indexNames = selectAllIndexFromTable(tableName);
+		for (var indexName : indexNames) {
+			var sql = String.format(SQL_DROP_INDEX, indexName, tableName);
 			l.info(sql);
 			j.execute(sql);
 		}
@@ -138,9 +135,9 @@ public abstract class Dao {
 
 	private List<Map<String, Object>> selectAllForeignKey() {
 		return j.query(getSelectAllForeignKeySql(), (rs, rowNum) -> {
-			Map<String, Object> map = new HashMap<>();
-			ResultSetMetaData meta = rs.getMetaData();
-			for (int i = 1; i <= meta.getColumnCount(); ++i) {
+			var map = new HashMap<String, Object>();
+			var meta = rs.getMetaData();
+			for (var i = 1; i <= meta.getColumnCount(); ++i) {
 				map.put(meta.getColumnLabel(i), rs.getObject(i));
 			}
 			return map;
@@ -148,17 +145,16 @@ public abstract class Dao {
 	}
 
 	public void dropAllForeignKey() {
-		String sql = getDropAllForeignKeySql();
+		var sql = getDropAllForeignKeySql();
 		if (StringUtils.hasText(sql)) {
 			execute(sql);
 		}
 	}
 
 	public String getDropAllForeignKeySql() {
-		StringBuilder sql = new StringBuilder();
-		for (Map<String, Object> fk : selectAllForeignKey()) {
-			sql.append(String.format(getDropForeignKeySql(), fk.get("table_name"), fk.get("foreign_key_name")))
-					.append(";");
+		var sql = new StringBuilder();
+		for (var fk : selectAllForeignKey()) {
+			sql.append(getDropForeignKeySql((String) fk.get("table_name"), (String) fk.get("foreign_key_name")));
 		}
 		return sql.toString();
 	}
@@ -291,8 +287,8 @@ public abstract class Dao {
 	}
 
 	public void execute(String sqls) {
-		for (String shot : sqls.split(";")) {
-			String sql = shot.trim();
+		for (var shot : sqls.split(";")) {
+			var sql = shot.trim();
 			l.info(sql);
 			j.execute(sql);
 		}

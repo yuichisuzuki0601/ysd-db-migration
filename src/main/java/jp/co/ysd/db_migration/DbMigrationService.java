@@ -102,43 +102,39 @@ public class DbMigrationService {
 
 	@SuppressWarnings("unchecked")
 	private void prepareIndexCore(ExecMode mode, Dao dao, File indexFile, String tableName) throws IOException {
-		Map<String, Object> index = new ObjectMapper().readValue(indexFile, Map.class);
-		List<Map<String, Object>> indexCols = (List<Map<String, Object>>) index.get("cols");
+		var index = new ObjectMapper().readValue(indexFile, Map.class);
+		var indexCols = (List<Map<String, Object>>) index.get("cols");
 		try {
 			dao.dropIndexFromTable(tableName);
-			if (mode != ExecMode.DROPINDEX) {
+			if (mode.not(ExecMode.DROPINDEX)) {
 				dao.createIndex(tableName, indexCols);
 			}
 		} catch (Exception e) {
-			if (mode != ExecMode.REPLACEINDEX && mode != ExecMode.DROPINDEX) {
-				throw new IOException(e);
-			} else {
+			if (mode.some(ExecMode.REPLACEINDEX, ExecMode.DROPINDEX)) {
 				System.err.println(e.getMessage());
+			} else {
+				throw new IOException(e);
 			}
 		}
 	}
 
 	private void prepareIndex(ExecMode mode, Dao dao) throws IOException {
-		if (!(mode == ExecMode.NORMAL || mode == ExecMode.REBUILD || mode == ExecMode.REPLACEINDEX
-				|| mode == ExecMode.DROPINDEX)) {
-			return;
-		}
-		File[] indexFiles = FileAccessor.getIndexFiles();
-		for (File indexFile : indexFiles) {
-			String tableName = FilenameUtils.removeExtension(indexFile.getName()).replaceAll("-index", "");
-			prepareIndexCore(mode, dao, indexFile, tableName);
+		if (mode.some(ExecMode.NORMAL, ExecMode.REBUILD, ExecMode.REPLACEINDEX, ExecMode.DROPINDEX)) {
+			var indexFiles = FileAccessor.getIndexFiles();
+			for (var indexFile : indexFiles) {
+				var tableName = FilenameUtils.removeExtension(indexFile.getName()).replaceAll("-index", "");
+				prepareIndexCore(mode, dao, indexFile, tableName);
+			}
 		}
 	}
 
 	private void prepareIndex(ExecMode mode, Dao dao, List<String> createds) throws IOException {
-		if (!(mode == ExecMode.NORMAL || mode == ExecMode.REBUILD || mode == ExecMode.REPLACEINDEX
-				|| mode == ExecMode.DROPINDEX)) {
-			return;
-		}
-		for (String tableName : createds) {
-			File indexFile = FileAccessor.getIndexFile(tableName);
-			if (indexFile.exists()) {
-				prepareIndexCore(mode, dao, indexFile, tableName);
+		if (mode.some(ExecMode.NORMAL, ExecMode.REBUILD, ExecMode.REPLACEINDEX, ExecMode.DROPINDEX)) {
+			for (var tableName : createds) {
+				var indexFile = FileAccessor.getIndexFile(tableName);
+				if (indexFile.exists()) {
+					prepareIndexCore(mode, dao, indexFile, tableName);
+				}
 			}
 		}
 	}

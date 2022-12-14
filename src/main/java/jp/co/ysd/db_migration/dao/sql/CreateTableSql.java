@@ -34,10 +34,6 @@ public final class CreateTableSql {
 		// primary key part
 		columnPart += pk != null ? ",PRIMARY KEY(`" + pk + "`)" : "";
 
-		if (tableName.equals("favorite_cases") || tableName.equals("users_persons")) {
-			System.out.println();
-		}
-
 		// unique part
 		List<String> uqList = new ArrayList<>();
 		if (uq instanceof List) {

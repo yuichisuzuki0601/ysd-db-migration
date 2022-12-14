@@ -1,6 +1,5 @@
 package jp.co.ysd.db_migration.sql_compiler;
 
-import java.io.File;
 import java.util.List;
 import java.util.Map;
 
@@ -21,11 +20,11 @@ public class CreateIndex extends Compile {
 	@Override
 	@SuppressWarnings("unchecked")
 	public String compile(String[] args) throws Exception {
-		String tableName = args[0];
-		File indexFile = FileAccessor.getIndexFile(tableName);
+		var tableName = args[0];
+		var indexFile = FileAccessor.getIndexFile(tableName);
 		if (indexFile.exists()) {
 			Map<String, Object> index = new ObjectMapper().readValue(indexFile, Map.class);
-			List<Map<String, String>> cols = (List<Map<String, String>>) index.get("cols");
+			var cols = (List<Map<String, String>>) index.get("cols");
 			return getDao().getCreateIndexSql(tableName, cols);
 		} else {
 			return "";

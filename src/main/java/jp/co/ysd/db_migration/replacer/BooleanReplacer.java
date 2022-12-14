@@ -13,7 +13,7 @@ public class BooleanReplacer implements DataReplacer {
 	@Override
 	public Object replace(Object original) {
 		if (original instanceof String) {
-			String str = original.toString();
+			var str = original.toString();
 			if (str.equals("false") || str.equals("FALSE")) {
 				original = false;
 			} else if (str.equals("true") || str.equals("TRUE")) {

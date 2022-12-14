@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import jp.co.ysd.db_migration.dao.Dao;
 import jp.co.ysd.db_migration.manager.DaoManager;
 
 // TODO 行指定とかに名前変えた方が良い
@@ -20,14 +19,14 @@ public class ForeignKeyReplacer implements DataReplacer {
 	@Override
 	public Object replace(Object original) {
 		if (original instanceof String) {
-			String str = original.toString();
+			var str = original.toString();
 			if (str.startsWith("foreignKey:")) {
-				String[] info = str.replaceAll("foreignKey:", "").split(":");
-				String tableName = info[0];
-				String index = info[1];
-				Dao dao = daoManager.get();
+				var info = str.replaceAll("foreignKey:", "").split(":");
+				var tableName = info[0];
+				var index = info[1];
+				var dao = daoManager.get();
 				try {
-					Object o = dao.selectDataOrderById(tableName, "id").get(Integer.parseInt(index) - 1);
+					var o = dao.selectDataOrderById(tableName, "id").get(Integer.parseInt(index) - 1);
 					original = o.toString();
 				} catch (IndexOutOfBoundsException e) {
 					l.error("!!!IndexOutOfBounds!!! table:" + tableName);

@@ -15,7 +15,7 @@ public class ULIDReplacer implements DataReplacer {
 	@Override
 	public Object replace(Object original) {
 		if (original instanceof String) {
-			String str = original.toString();
+			var str = original.toString();
 			if (str.startsWith("ulid:")) {
 				original = new ULID().nextULID();
 			}

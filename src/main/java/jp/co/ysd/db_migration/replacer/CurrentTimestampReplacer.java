@@ -30,7 +30,7 @@ public class CurrentTimestampReplacer implements DataReplacer, InitializingBean 
 	@Override
 	public Object replace(Object original) {
 		if (original instanceof String) {
-			String str = original.toString();
+			var str = original.toString();
 			if (str.equals("CURRENT_TIMESTAMP")) {
 				original = DF.format(new Date());
 			}

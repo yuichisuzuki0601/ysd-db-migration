@@ -1,7 +1,5 @@
 package jp.co.ysd.db_migration.sql_compiler;
 
-import java.io.File;
-
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -21,10 +19,10 @@ public class CreateAllForeignKey extends Compile {
 
 	@Override
 	public String compile(String[] args) throws Exception {
-		File[] constraintFiles = FileAccessor.getConstraintFiles();
-		StringBuilder result = new StringBuilder();
-		for (File constraintFile : constraintFiles) {
-			String tableName = FilenameUtils.removeExtension(constraintFile.getName()).replace("-constraint", "");
+		var constraintFiles = FileAccessor.getConstraintFiles();
+		var result = new StringBuilder();
+		for (var constraintFile : constraintFiles) {
+			var tableName = FilenameUtils.removeExtension(constraintFile.getName()).replace("-constraint", "");
 			result.append(createForeignKey.compile(new String[] { tableName }));
 		}
 		return result.toString();

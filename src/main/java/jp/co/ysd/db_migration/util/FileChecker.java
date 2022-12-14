@@ -1,9 +1,6 @@
 package jp.co.ysd.db_migration.util;
 
-import java.io.File;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,40 +15,40 @@ public class FileChecker {
 	private YsdDbMigrationProperty property;
 
 	public void checkAllFiles() throws Exception {
-		List<String> tableNames = new ArrayList<>();
-		for (File defineFile : FileAccessor.getDefineFiles()) {
+		var tableNames = new ArrayList<String>();
+		for (var defineFile : FileAccessor.getDefineFiles()) {
 			tableNames.add(FilenameUtils.removeExtension(defineFile.getName()));
 		}
-		List<String> incorrectFiles = new ArrayList<>();
-		for (File file : FileAccessor.getIndexFiles()) {
-			String fileName = file.getName();
+		var incorrectFiles = new ArrayList<String>();
+		for (var file : FileAccessor.getIndexFiles()) {
+			var fileName = file.getName();
 			if (!tableNames.contains(FilenameUtils.removeExtension(fileName.replaceAll("-index", "")))) {
 				incorrectFiles.add(file.getCanonicalPath());
 			}
 		}
-		for (File file : FileAccessor.getConstraintFiles()) {
-			String fileName = file.getName();
+		for (var file : FileAccessor.getConstraintFiles()) {
+			var fileName = file.getName();
 			if (!tableNames.contains(FilenameUtils.removeExtension(fileName.replaceAll("-constraint", "")))) {
 				incorrectFiles.add(file.getCanonicalPath());
 			}
 		}
-		for (File file : FileAccessor.getViewFiles()) {
-			String fileName = file.getName();
-			String viewName = FilenameUtils.removeExtension(fileName.replaceAll("-view", ""));
+		for (var file : FileAccessor.getViewFiles()) {
+			var fileName = file.getName();
+			var viewName = FilenameUtils.removeExtension(fileName.replaceAll("-view", ""));
 			if (!tableNames.contains(viewName.replaceFirst(property.getView().getPrefix(), ""))) {
 				incorrectFiles.add(file.getCanonicalPath());
 			}
 		}
-		for (File file : FileAccessor.getDataFiles()) {
-			String fileName = file.getName();
+		for (var file : FileAccessor.getDataFiles()) {
+			var fileName = file.getName();
 			if (!tableNames.contains(FilenameUtils.removeExtension(fileName.replaceAll("-data", "")))) {
 				incorrectFiles.add(file.getCanonicalPath());
 			}
 		}
 
-		for (Iterator<String> it = incorrectFiles.iterator(); it.hasNext();) {
-			String incorrectFile = it.next();
-			for (String setting : property.getCorrectFiles()) {
+		for (var it = incorrectFiles.iterator(); it.hasNext();) {
+			var incorrectFile = it.next();
+			for (var setting : property.getCorrectFiles()) {
 				if (incorrectFile.contains(setting)) {
 					it.remove();
 				}

@@ -14,7 +14,7 @@ public class BCryptReplacer implements DataReplacer {
 	@Override
 	public Object replace(Object original) {
 		if (original instanceof String) {
-			String str = original.toString();
+			var str = original.toString();
 			if (str.startsWith("encrypt:")) {
 				str = new BCryptPasswordEncoder().encode(str.replaceAll("encrypt:", ""));
 				original = str;

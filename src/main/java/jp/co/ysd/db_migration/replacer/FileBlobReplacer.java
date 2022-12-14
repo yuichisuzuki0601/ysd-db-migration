@@ -21,9 +21,9 @@ public class FileBlobReplacer implements DataReplacer {
 	@Override
 	public Object replace(Object original) {
 		if (original instanceof String) {
-			String str = original.toString();
+			var str = original.toString();
 			if (str.startsWith("file:")) {
-				String filePath = FileAccessor.getDataDir() + "/" + str.replaceAll("file:", "");
+				var filePath = FileAccessor.getDataDir() + "/" + str.replaceAll("file:", "");
 				try {
 					original = new SqlParameterValue(Types.BLOB, Files.readAllBytes(new File(filePath).toPath()));
 				} catch (IOException e) {

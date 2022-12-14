@@ -21,15 +21,15 @@ public class DataUriReplacer implements DataReplacer {
 	@Override
 	public Object replace(Object original) {
 		if (original instanceof String) {
-			String str = original.toString();
+			var str = original.toString();
 			if (str.startsWith("datauri:")) {
-				String filePath = FileAccessor.getDataDir() + "/" + str.replaceAll("datauri:", "");
+				var filePath = FileAccessor.getDataDir() + "/" + str.replaceAll("datauri:", "");
 				try {
-					File file = new File(filePath);
-					String contentType = URLConnection.getFileNameMap().getContentTypeFor(file.getName());
-					byte[] data = Files.readAllBytes(file.toPath());
-					String base64str = Base64.getEncoder().encodeToString(data);
-					StringBuilder sb = new StringBuilder();
+					var file = new File(filePath);
+					var contentType = URLConnection.getFileNameMap().getContentTypeFor(file.getName());
+					var data = Files.readAllBytes(file.toPath());
+					var base64str = Base64.getEncoder().encodeToString(data);
+					var sb = new StringBuilder();
 					sb.append("data:");
 					sb.append(contentType);
 					sb.append(";base64,");

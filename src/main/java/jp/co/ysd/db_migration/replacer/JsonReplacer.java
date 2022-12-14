@@ -7,7 +7,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FilenameUtils;
@@ -37,11 +36,11 @@ public class JsonReplacer implements DataReplacer {
 	@Override
 	public Object replace(Object original) {
 		if (original instanceof String) {
-			String str = original.toString();
+			var str = original.toString();
 			if (str.startsWith("json:")) {
-				String data = str.replaceAll("json:", "");
+				var data = str.replaceAll("json:", "");
 				try {
-					String jsonStr = getFileJsonObject(data);
+					var jsonStr = getFileJsonObject(data);
 					jsonStr = getTargetJsonObject(data, jsonStr);
 					jsonStr = filterProperties(data, jsonStr);
 					original = YsdStringUtil.strip(jsonStr);
@@ -55,20 +54,20 @@ public class JsonReplacer implements DataReplacer {
 	}
 
 	private String getBeforeSpritter(String org, String... splitters) {
-		int splitIndex = org.indexOf(splitters[0]);
-		String result = org.substring(0, splitIndex > 0 ? splitIndex : org.length());
-		String[] shiftedSplitters = Arrays.stream(splitters).skip(1).toArray(String[]::new);
+		var splitIndex = org.indexOf(splitters[0]);
+		var result = org.substring(0, splitIndex > 0 ? splitIndex : org.length());
+		var shiftedSplitters = Arrays.stream(splitters).skip(1).toArray(String[]::new);
 		return shiftedSplitters.length == 0 ? result : getBeforeSpritter(result, shiftedSplitters);
 	}
 
 	private String getAfterSplitter(String org, String splitter) {
-		int splitIndex = org.indexOf(splitter);
+		var splitIndex = org.indexOf(splitter);
 		return splitIndex > 0 ? org.substring(splitIndex + 1) : org;
 	}
 
 	private String getFileJsonObject(String data) throws IOException {
-		String filePath = FileAccessor.getDataDir() + "/" + getBeforeSpritter(data, "#", "@");
-		String extension = FilenameUtils.getExtension(filePath);
+		var filePath = FileAccessor.getDataDir() + "/" + getBeforeSpritter(data, "#", "@");
+		var extension = FilenameUtils.getExtension(filePath);
 		if ("csv".equals(extension)) {
 			return CsvToJsonTranspiler.transpile(filePath);
 		} else if ("json".equals(extension)) {
@@ -89,16 +88,16 @@ public class JsonReplacer implements DataReplacer {
 		if (json == null) {
 			return jsonStr;
 		}
-		for (DataReplacer replacer : replacers) {
-			for (Entry<String, Object> e : json.entrySet()) {
+		for (var replacer : replacers) {
+			for (var e : json.entrySet()) {
 				json.put(e.getKey(), replacer.replace(e.getValue()));
 			}
 		}
 		if (!org.contains("#")) {
 			return OM.writeValueAsString(json);
 		}
-		String dest = getAfterSplitter(org, "#");
-		String result = OM.writeValueAsString(json.get(getBeforeSpritter(dest, "#", "@")));
+		var dest = getAfterSplitter(org, "#");
+		var result = OM.writeValueAsString(json.get(getBeforeSpritter(dest, "#", "@")));
 		return getTargetJsonObject(dest, result);
 	}
 
@@ -106,8 +105,8 @@ public class JsonReplacer implements DataReplacer {
 	private String filterProperties(String data, String jsonStr) throws IOException {
 		if (data.contains("@") && !StringUtils.isEmpty(jsonStr)) {
 			Map<String, Object> json = OM.readValue(jsonStr, Map.class);
-			List<String> targetProperties = Arrays.asList(getAfterSplitter(data, "@").split(","));
-			for (String key : new HashSet<>(json.keySet())) {
+			var targetProperties = Arrays.asList(getAfterSplitter(data, "@").split(","));
+			for (var key : new HashSet<>(json.keySet())) {
 				if (!targetProperties.contains(key)) {
 					json.remove(key);
 				}

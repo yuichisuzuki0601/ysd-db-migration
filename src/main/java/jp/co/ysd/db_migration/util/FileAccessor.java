@@ -57,7 +57,7 @@ public final class FileAccessor {
 	}
 
 	public static File[] getIndexFiles() {
-		File[] result = new File(String.format(INDEX_DIR, rootDir)).listFiles();
+		var result = new File(String.format(INDEX_DIR, rootDir)).listFiles();
 		return result != null ? removeIgnoreFiles(result) : new File[0];
 	}
 
@@ -66,7 +66,7 @@ public final class FileAccessor {
 	}
 
 	public static File[] getConstraintFiles() {
-		File[] result = new File(String.format(CONSTRAINT_DIR, rootDir)).listFiles();
+		var result = new File(String.format(CONSTRAINT_DIR, rootDir)).listFiles();
 		return result != null ? removeIgnoreFiles(result) : new File[0];
 	}
 
@@ -75,7 +75,7 @@ public final class FileAccessor {
 	}
 
 	public static File[] getViewFiles() {
-		File[] result = new File(String.format(VIEW_DIR, rootDir)).listFiles();
+		var result = new File(String.format(VIEW_DIR, rootDir)).listFiles();
 		result = result != null ? removeIgnoreFiles(result) : new File[0];
 		return stream(result).filter(f -> f.getName().endsWith("-view.json")).end().toArray(new File[0]);
 	}
@@ -85,7 +85,7 @@ public final class FileAccessor {
 	}
 
 	public static File[] getDataFiles() {
-		File[] result = new File(getDataDir()).listFiles();
+		var result = new File(getDataDir()).listFiles();
 		return result != null ? removeIgnoreFiles(result) : new File[0];
 	}
 
@@ -105,9 +105,9 @@ public final class FileAccessor {
 	}
 
 	private static File[] getOrderdFiles(String _dir) throws IOException {
-		String dir = String.format(_dir, rootDir);
+		var dir = String.format(_dir, rootDir);
 		File[] result = null;
-		File orderFile = new File(dir + "/order.txt");
+		var orderFile = new File(dir + "/order.txt");
 		if (orderFile.exists()) {
 			result = Files.lines(orderFile.toPath()).filter(l -> {
 				return StringUtils.hasText(l) && !l.startsWith("//");

@@ -7,9 +7,8 @@ import org.springframework.stereotype.Component;
 
 import jp.co.ysd.db_migration.manager.DaoManager;
 
-// TODO 行指定とかに名前変えた方が良い
 @Component
-public class ForeignKeyReplacer implements DataReplacer {
+public class RowNumberReplacer implements DataReplacer {
 
 	protected Logger l = LoggerFactory.getLogger(getClass());
 
@@ -20,8 +19,8 @@ public class ForeignKeyReplacer implements DataReplacer {
 	public Object replace(Object original) {
 		if (original instanceof String) {
 			var str = original.toString();
-			if (str.startsWith("foreignKey:")) {
-				var info = str.replaceAll("foreignKey:", "").split(":");
+			if (str.startsWith("rowNumber:")) {
+				var info = str.replaceAll("rowNumber:", "").split(":");
 				var tableName = info[0];
 				var index = info[1];
 				var dao = daoManager.get();

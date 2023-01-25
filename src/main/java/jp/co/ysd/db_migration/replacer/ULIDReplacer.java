@@ -17,6 +17,10 @@ public class ULIDReplacer implements DataReplacer {
 		if (original instanceof String) {
 			var str = original.toString();
 			if (str.startsWith("ulid:")) {
+				try {
+					Thread.sleep(1);
+				} catch (InterruptedException e) {
+				}
 				original = new ULID().nextULID();
 			}
 		}

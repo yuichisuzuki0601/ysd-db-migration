@@ -19,7 +19,8 @@ import org.springframework.util.StringUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jp.co.ysd.db_migration.dao.Dao;
-import jp.co.ysd.db_migration.manager.DaoManager;
+import jp.co.ysd.db_migration.dao.DaoManager;
+import jp.co.ysd.db_migration.manager.CommandManager;
 import jp.co.ysd.db_migration.sql_compiler.SqlCompiler;
 import jp.co.ysd.db_migration.util.CsvToJsonTranspiler;
 import jp.co.ysd.db_migration.util.FileAccessor;
@@ -46,8 +47,13 @@ public class DbMigrationService {
 	private Logger l = LoggerFactory.getLogger(getClass());
 
 	@Transactional
-	public void execute(ExecMode mode, String rootDir, String dataDir) throws Exception {
+	public void execute() throws Exception {
 		l.info("db-migration service start.");
+
+		var cm = CommandManager.getInstance();
+		var mode = cm.getMode();
+		var rootDir = cm.getRootDir();
+		var dataDir = cm.getDataDir();
 
 		FileAccessor.init(rootDir, dataDir);
 

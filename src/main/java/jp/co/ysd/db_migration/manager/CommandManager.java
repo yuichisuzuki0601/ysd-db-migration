@@ -14,16 +14,27 @@ import jp.co.ysd.db_migration.ExecMode;
  * @author yuichi
  *
  */
-public class CommandManager {
+public final class CommandManager {
+
+	public static CommandManager instance;
+
+	public static void init(String[] orgArgs) throws ParseException {
+		instance = new CommandManager(orgArgs);
+	}
+
+	public static CommandManager getInstance() {
+		return instance;
+	}
 
 	private CommandLine commandLine;
 
-	public CommandManager(String[] orgArgs) throws ParseException {
+	private CommandManager(String[] orgArgs) throws ParseException {
 		var args = Arrays.stream(orgArgs).filter(arg -> !arg.startsWith("--spring")).toArray(String[]::new);
 		var options = new Options();
 		options.addOption("mode", true, "適用モードを指定します");
 		options.addOption("rootdir", true, "テーブル定義ディレクトリ/データディレクトリのあるディレクトリパスを設定します");
 		options.addOption("datadir", true, "データディレクトリ名を設定します。デフォルトはdataです。");
+		options.addOption("schema", true, "適用するスキーマを指定します");
 		this.commandLine = new DefaultParser().parse(options, args, false);
 	}
 
@@ -37,6 +48,10 @@ public class CommandManager {
 
 	public String getDataDir() {
 		return commandLine.hasOption("datadir") ? commandLine.getOptionValue("datadir") : null;
+	}
+
+	public String getTargetSchema() {
+		return commandLine.hasOption("schema") ? commandLine.getOptionValue("schema") : null;
 	}
 
 }

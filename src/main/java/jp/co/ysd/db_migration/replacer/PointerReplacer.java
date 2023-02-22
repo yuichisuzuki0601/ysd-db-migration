@@ -3,7 +3,7 @@ package jp.co.ysd.db_migration.replacer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import jp.co.ysd.db_migration.manager.DaoManager;
+import jp.co.ysd.db_migration.dao.DaoManager;
 
 /**
  *

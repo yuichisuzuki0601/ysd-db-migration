@@ -34,6 +34,7 @@ import jp.co.ysd.db_migration.dao.sql.DropTableSql;
 import jp.co.ysd.db_migration.dao.sql.DropViewSql;
 import jp.co.ysd.db_migration.dao.sql.SelectDataByIdSql;
 import jp.co.ysd.db_migration.dao.sql.SelectDataOrderByIdSql;
+import jp.co.ysd.db_migration.datasource.DataSourceWrapper;
 import jp.co.ysd.db_migration.replacer.DataReplacer;
 import jp.co.ysd.db_migration.util.FileAccessor;
 import jp.co.ysd.ysd_util.tuple.Tuple2;
@@ -48,6 +49,9 @@ public abstract class Dao {
 	private static final String SQL_INSERT = "INSERT INTO `%s` %s VALUES %s;";
 
 	protected Logger l = LoggerFactory.getLogger(getClass());
+
+	@Autowired
+	protected DataSourceWrapper dataSourceWrapper;
 
 	@Autowired
 	protected JdbcTemplate j;

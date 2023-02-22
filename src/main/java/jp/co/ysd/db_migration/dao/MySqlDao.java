@@ -1,6 +1,5 @@
 package jp.co.ysd.db_migration.dao;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import jp.co.ysd.db_migration.dao.sql.mysql.MySqlDropForeignKeySql;
@@ -17,13 +16,8 @@ import jp.co.ysd.db_migration.dao.sql.mysql.MySqlSelectAllTableAndViewSql;
 @Component
 public class MySqlDao extends Dao {
 
-	@Value("${spring.datasource.url}")
-	private String url;
-
 	private String getSchema() {
-		int from = url.lastIndexOf("/") + 1;
-		int to = url.indexOf("?") > 0 ? url.indexOf("?") : url.length();
-		return url.substring(from, to);
+		return dataSourceWrapper.getSchema();
 	}
 
 	@Override

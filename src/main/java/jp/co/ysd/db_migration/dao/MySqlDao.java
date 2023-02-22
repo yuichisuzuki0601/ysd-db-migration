@@ -21,6 +21,16 @@ public class MySqlDao extends Dao {
 	}
 
 	@Override
+	protected String getDropSchemaIfExistsSql() {
+		return "DROP DATABASE IF EXISTS " + getSchema();
+	}
+
+	@Override
+	protected String getCreateSchemaIfNotExistsSql() {
+		return "CREATE DATABASE IF NOT EXISTS " + getSchema();
+	}
+
+	@Override
 	protected boolean existTableAndView(String name) {
 		return !j.query(MySqlExistTableAndViewSql.get(getSchema()), (rs, rowNum) -> rs.getObject(1), name).isEmpty();
 	}

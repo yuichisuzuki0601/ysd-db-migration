@@ -1,4 +1,4 @@
-package jp.co.ysd.db_migration.manager;
+package jp.co.ysd.db_migration;
 
 import java.util.Arrays;
 
@@ -6,8 +6,6 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-
-import jp.co.ysd.db_migration.ExecMode;
 
 /**
  * 
@@ -34,7 +32,8 @@ public final class CommandManager {
 		options.addOption("mode", true, "適用モードを指定します");
 		options.addOption("rootdir", true, "テーブル定義ディレクトリ/データディレクトリのあるディレクトリパスを設定します");
 		options.addOption("datadir", true, "データディレクトリ名を設定します。デフォルトはdataです。");
-		options.addOption("schema", true, "適用するスキーマを指定します");
+		options.addOption("targetschema", true, "適用するスキーマを指定します");
+		options.addOption("autoschema", false, "スキーマの自動生成削除機能を有効にします");
 		this.commandLine = new DefaultParser().parse(options, args, false);
 	}
 
@@ -51,7 +50,11 @@ public final class CommandManager {
 	}
 
 	public String getTargetSchema() {
-		return commandLine.hasOption("schema") ? commandLine.getOptionValue("schema") : null;
+		return commandLine.hasOption("targetschema") ? commandLine.getOptionValue("targetschema") : null;
+	}
+
+	public boolean getAutoSchema() {
+		return commandLine.hasOption("autoschema");
 	}
 
 }

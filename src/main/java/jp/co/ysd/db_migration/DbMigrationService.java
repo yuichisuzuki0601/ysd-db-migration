@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jp.co.ysd.db_migration.dao.Dao;
 import jp.co.ysd.db_migration.dao.DaoManager;
-import jp.co.ysd.db_migration.manager.CommandManager;
 import jp.co.ysd.db_migration.sql_compiler.SqlCompiler;
 import jp.co.ysd.db_migration.util.CsvToJsonTranspiler;
 import jp.co.ysd.db_migration.util.FileAccessor;
@@ -46,16 +45,13 @@ public class DbMigrationService {
 
 	private Logger l = LoggerFactory.getLogger(getClass());
 
-	@Transactional
 	public void execute() throws Exception {
 		l.info("db-migration service start.");
 
 		var cm = CommandManager.getInstance();
 		var mode = cm.getMode();
-		var rootDir = cm.getRootDir();
-		var dataDir = cm.getDataDir();
 
-		FileAccessor.init(rootDir, dataDir);
+		FileAccessor.init(cm.getRootDir(), cm.getDataDir());
 
 		l.info("mode: {}", mode);
 		l.info("root directory: {}", FileAccessor.getRootDir());
@@ -75,6 +71,7 @@ public class DbMigrationService {
 		if (mode.some(ExecMode.NORMAL, ExecMode.REBUILD)) {
 			fileChecker.checkAllFiles();
 		}
+		dao.createSchemaIfNotExists();
 		if (mode.some(ExecMode.REBUILD, ExecMode.DROPALL)) {
 			dao.dropAllForeignKey();
 			dao.dropAllTableAndView();
@@ -86,6 +83,8 @@ public class DbMigrationService {
 			prepareConstraint(mode, dao, createds);
 			prepareView(mode, dao);
 			applySql(dao);
+		} else {
+			dao.dropSchemaIfExists();
 		}
 
 		l.info("db-migration service finish.");
@@ -151,6 +150,7 @@ public class DbMigrationService {
 		}
 	}
 
+	@Transactional
 	@SuppressWarnings("unchecked")
 	private void prepareData(ExecMode mode, Dao dao, List<String> createds) throws IOException {
 		var dataFiles = FileAccessor.getOrderdDataFiles();
@@ -207,6 +207,7 @@ public class DbMigrationService {
 		}
 	}
 
+	@Transactional
 	private void applySql(Dao dao) throws Exception {
 		var sqlFiles = FileAccessor.getOrderdSqlFiles();
 		if (sqlFiles != null) {

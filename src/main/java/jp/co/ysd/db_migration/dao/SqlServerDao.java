@@ -17,6 +17,18 @@ import jp.co.ysd.db_migration.dao.sql.sqlserver.SqlServerSelectAllTableAndViewSq
 public class SqlServerDao extends Dao {
 
 	@Override
+	protected String getDropSchemaIfExistsSql() {
+		// TODO 自動生成されたメソッド・スタブ
+		return null;
+	}
+
+	@Override
+	protected String getCreateSchemaIfNotExistsSql() {
+		// TODO 自動生成されたメソッド・スタブ
+		return null;
+	}
+
+	@Override
 	protected boolean existTableAndView(String name) {
 		return !j.query(SqlServerExistTableAndViewSql.get(), (rs, rowNum) -> rs.getObject(1), name).isEmpty();
 	}

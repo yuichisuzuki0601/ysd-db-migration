@@ -8,6 +8,7 @@ import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 import org.springframework.stereotype.Component;
 
 import jp.co.ysd.db_migration.properties.spring.datasource.DatasourceProperty;
@@ -15,6 +16,36 @@ import jp.co.ysd.db_migration.properties.spring.datasource.DatasourceProperty;
 @Component
 @Configuration
 public class DataSourceManager {
+
+	public static enum DataSourceType {
+		ROOT, TARGET
+	}
+
+	public static class CurrentDataSource {
+
+		private static CurrentDataSource instance;
+
+		public static CurrentDataSource getInstance() {
+			if (instance == null) {
+				instance = new CurrentDataSource();
+			}
+			return instance;
+		}
+
+		private DataSourceType dataSourceType = DataSourceType.TARGET;
+
+		public DataSourceType getDataSourceType() {
+			return dataSourceType;
+		}
+
+		public void toRoot() {
+			this.dataSourceType = DataSourceType.ROOT;
+		}
+
+		public void toTarget() {
+			this.dataSourceType = DataSourceType.TARGET;
+		}
+	}
 
 	private static final Map<String, Class<? extends DataSourceWrapper>> DRIVER_WRAPPER_MAP = new HashMap<>();
 	static {
@@ -28,6 +59,30 @@ public class DataSourceManager {
 	private DatasourceProperty property;
 
 	@Bean
+	public DataSource dataSource() {
+		var wrapper = dataSourceWrapper();
+
+		var resolver = new AbstractRoutingDataSource() {
+			@Override
+			protected Object determineCurrentLookupKey() {
+				return CurrentDataSource.getInstance().getDataSourceType();
+			}
+		};
+
+		var root = wrapper.getRootDataSource();
+		var target = wrapper.getTargetDataSource();
+
+		resolver.setDefaultTargetDataSource(target);
+
+		var dataSources = new HashMap<Object, Object>();
+		dataSources.put(DataSourceType.ROOT, root);
+		dataSources.put(DataSourceType.TARGET, target);
+		resolver.setTargetDataSources(dataSources);
+
+		return resolver;
+	}
+
+	@Bean
 	public DataSourceWrapper dataSourceWrapper() {
 		var clazz = DRIVER_WRAPPER_MAP.get(property.getDriverClassName());
 		try {
@@ -39,11 +94,6 @@ public class DataSourceManager {
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
-	}
-
-	@Bean
-	public DataSource dataSource() {
-		return dataSourceWrapper().getDataSource();
 	}
 
 }

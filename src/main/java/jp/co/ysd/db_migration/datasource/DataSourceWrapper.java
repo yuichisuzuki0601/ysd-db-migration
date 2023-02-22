@@ -12,11 +12,19 @@ public abstract class DataSourceWrapper {
 
 	private DatasourceProperty property;
 
-	private DataSource dataSource;
+	private DataSource rootDataSource;
+
+	private DataSource targetDataSource;
 
 	public DataSourceWrapper(DatasourceProperty property) {
 		this.property = property;
-		this.dataSource = DataSourceBuilder.create().//
+		this.rootDataSource = DataSourceBuilder.create().//
+				driverClassName(property.getDriverClassName()).//
+				url(getBaseUrl()).//
+				username(property.getUsername()).//
+				password(property.getPassword()).//
+				build();
+		this.targetDataSource = DataSourceBuilder.create().//
 				driverClassName(property.getDriverClassName()).//
 				url(getUrl()).//
 				username(property.getUsername()).//

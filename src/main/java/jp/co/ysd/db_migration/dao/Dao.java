@@ -24,6 +24,7 @@ import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.StringUtils;
 
+import jp.co.ysd.db_migration.CommandManager;
 import jp.co.ysd.db_migration.ExecMode;
 import jp.co.ysd.db_migration.dao.sql.CreateForeignKeySql;
 import jp.co.ysd.db_migration.dao.sql.CreateIndexSql;
@@ -34,6 +35,7 @@ import jp.co.ysd.db_migration.dao.sql.DropTableSql;
 import jp.co.ysd.db_migration.dao.sql.DropViewSql;
 import jp.co.ysd.db_migration.dao.sql.SelectDataByIdSql;
 import jp.co.ysd.db_migration.dao.sql.SelectDataOrderByIdSql;
+import jp.co.ysd.db_migration.datasource.DataSourceManager.CurrentDataSource;
 import jp.co.ysd.db_migration.datasource.DataSourceWrapper;
 import jp.co.ysd.db_migration.replacer.DataReplacer;
 import jp.co.ysd.db_migration.util.FileAccessor;
@@ -61,6 +63,10 @@ public abstract class Dao {
 
 	protected abstract boolean existTableAndView(String tableName);
 
+	protected abstract String getDropSchemaIfExistsSql();
+
+	protected abstract String getCreateSchemaIfNotExistsSql();
+
 	protected abstract String getSelectAllTableAndViewSql();
 
 	protected abstract String getSelectAllForeignKeySql();
@@ -76,6 +82,24 @@ public abstract class Dao {
 			j.execute(sql);
 		}
 	}
+
+	public void dropSchemaIfExists() {
+		if (CommandManager.getInstance().getAutoSchema()) {
+			var currentDataSource = CurrentDataSource.getInstance();
+			currentDataSource.toRoot();
+			execute(getDropSchemaIfExistsSql());
+			currentDataSource.toTarget();
+		}
+	};
+
+	public void createSchemaIfNotExists() {
+		if (CommandManager.getInstance().getAutoSchema()) {
+			var currentDataSource = CurrentDataSource.getInstance();
+			currentDataSource.toRoot();
+			execute(getCreateSchemaIfNotExistsSql());
+			currentDataSource.toTarget();
+		}
+	};
 
 	public void dropAllTableAndView() {
 		var tableInfos = j.query(getSelectAllTableAndViewSql(),

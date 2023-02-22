@@ -2,7 +2,7 @@ package jp.co.ysd.db_migration.datasource;
 
 import org.springframework.util.StringUtils;
 
-import jp.co.ysd.db_migration.manager.CommandManager;
+import jp.co.ysd.db_migration.CommandManager;
 import jp.co.ysd.db_migration.properties.spring.datasource.DatasourceProperty;
 
 public class SqlServerDataSourceWrapper extends DataSourceWrapper {

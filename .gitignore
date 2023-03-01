@@ -26,5 +26,6 @@ nbdist/
 ### Additional ###
 .DS_Store
 application.yml
+src/test/java/*.java
 
 !.gitkeep

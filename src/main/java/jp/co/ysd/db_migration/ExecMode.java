@@ -9,14 +9,14 @@ import java.util.Arrays;
  */
 public enum ExecMode {
 
-	// なし or normal:作成されていないテーブルのみ適用
+	// なし or apply:作成されていないテーブルのみ適用
 	// rebuild:全テーブル再作成
 	// dropall:全テーブル削除
 	// dataall:データのみ全適用
 	// replaceindex:インデックスの更新のみ
 	// replaceindex:インデックスの削除のみ
 	// replaceview:ビューの更新のみ
-	NORMAL, REBUILD, DROPALL, DATAALL, REPLACEINDEX, DROPINDEX, REPLACEVIEW;
+	APPLY, REBUILD, DROPALL, DATAALL, REPLACEINDEX, DROPINDEX, REPLACEVIEW;
 
 	public static ExecMode of(String mode) {
 		for (ExecMode self : values()) {

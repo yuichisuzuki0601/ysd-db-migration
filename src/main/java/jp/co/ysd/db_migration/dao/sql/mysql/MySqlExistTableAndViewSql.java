@@ -9,7 +9,7 @@ import jp.co.ysd.ysd_util.string.Template;
  */
 public class MySqlExistTableAndViewSql {
 
-	private static final Template TEMPLATE = Template.of("SHOW TABLES FROM {schema} LIKE ?;");
+	private static final Template TEMPLATE = Template.of("SHOW TABLES FROM `{schema}` LIKE ?;");
 
 	public static String get(String schema) {
 		return TEMPLATE.bind(schema);

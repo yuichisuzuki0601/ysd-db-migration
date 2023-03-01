@@ -22,12 +22,12 @@ public class MySqlDao extends Dao {
 
 	@Override
 	protected String getDropSchemaIfExistsSql() {
-		return "DROP DATABASE IF EXISTS " + getSchema();
+		return "DROP DATABASE IF EXISTS `" + getSchema() + "`";
 	}
 
 	@Override
 	protected String getCreateSchemaIfNotExistsSql() {
-		return "CREATE DATABASE IF NOT EXISTS " + getSchema();
+		return "CREATE DATABASE IF NOT EXISTS `" + getSchema() + "`";
 	}
 
 	@Override

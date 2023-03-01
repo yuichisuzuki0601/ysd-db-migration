@@ -68,7 +68,7 @@ public class DbMigrationService {
 
 		// ***
 
-		if (mode.some(ExecMode.NORMAL, ExecMode.REBUILD)) {
+		if (mode.some(ExecMode.APPLY, ExecMode.REBUILD)) {
 			fileChecker.checkAllFiles();
 		}
 		dao.createSchemaIfNotExists();
@@ -93,7 +93,7 @@ public class DbMigrationService {
 	@SuppressWarnings("unchecked")
 	private List<String> prepareTable(ExecMode mode, Dao dao) throws IOException {
 		var createds = new ArrayList<String>();
-		if (mode.some(ExecMode.NORMAL, ExecMode.REBUILD)) {
+		if (mode.some(ExecMode.APPLY, ExecMode.REBUILD)) {
 			var defineFiles = FileAccessor.getDefineFiles();
 			if (defineFiles != null) {
 				for (var defineFile : defineFiles) {
@@ -130,7 +130,7 @@ public class DbMigrationService {
 	}
 
 	private void prepareIndex(ExecMode mode, Dao dao) throws IOException {
-		if (mode.some(ExecMode.NORMAL, ExecMode.REBUILD, ExecMode.REPLACEINDEX, ExecMode.DROPINDEX)) {
+		if (mode.some(ExecMode.APPLY, ExecMode.REBUILD, ExecMode.REPLACEINDEX, ExecMode.DROPINDEX)) {
 			var indexFiles = FileAccessor.getIndexFiles();
 			for (var indexFile : indexFiles) {
 				var tableName = FilenameUtils.removeExtension(indexFile.getName()).replaceAll("-index", "");
@@ -140,7 +140,7 @@ public class DbMigrationService {
 	}
 
 	private void prepareIndex(ExecMode mode, Dao dao, List<String> createds) throws IOException {
-		if (mode.some(ExecMode.NORMAL, ExecMode.REBUILD, ExecMode.REPLACEINDEX, ExecMode.DROPINDEX)) {
+		if (mode.some(ExecMode.APPLY, ExecMode.REBUILD, ExecMode.REPLACEINDEX, ExecMode.DROPINDEX)) {
 			for (var tableName : createds) {
 				var indexFile = FileAccessor.getIndexFile(tableName);
 				if (indexFile.exists()) {
@@ -158,7 +158,7 @@ public class DbMigrationService {
 			for (var dataFile : dataFiles) {
 				if (dataFile.exists()) {
 					var tableName = FilenameUtils.removeExtension(dataFile.getName()).replace("-data", "");
-					var cond1 = mode.some(ExecMode.NORMAL, ExecMode.REBUILD) && createds.contains(tableName);
+					var cond1 = mode.some(ExecMode.APPLY, ExecMode.REBUILD) && createds.contains(tableName);
 					var cond2 = mode.is(ExecMode.DATAALL);
 					if (cond1 || cond2) {
 						var extension = FilenameUtils.getExtension(dataFile.getName());
@@ -177,7 +177,7 @@ public class DbMigrationService {
 
 	@SuppressWarnings("unchecked")
 	private void prepareConstraint(ExecMode mode, Dao dao, List<String> createds) throws IOException {
-		if (mode.some(ExecMode.NORMAL, ExecMode.REBUILD)) {
+		if (mode.some(ExecMode.APPLY, ExecMode.REBUILD)) {
 			for (var tableName : createds) {
 				var constraintFile = FileAccessor.getConstraintFile(tableName);
 				if (constraintFile.exists()) {
@@ -191,7 +191,7 @@ public class DbMigrationService {
 
 	@SuppressWarnings("unchecked")
 	private void prepareView(ExecMode mode, Dao dao) throws IOException {
-		if (mode.some(ExecMode.NORMAL, ExecMode.REBUILD, ExecMode.REPLACEVIEW)) {
+		if (mode.some(ExecMode.APPLY, ExecMode.REBUILD, ExecMode.REPLACEVIEW)) {
 			var viewFiles = FileAccessor.getViewFiles();
 			for (var viewFile : viewFiles) {
 				var viewName = FilenameUtils.removeExtension(viewFile.getName()).replaceAll("-view", "");

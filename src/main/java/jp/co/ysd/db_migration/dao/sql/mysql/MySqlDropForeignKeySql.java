@@ -9,7 +9,7 @@ import jp.co.ysd.ysd_util.string.Template;
  */
 public class MySqlDropForeignKeySql {
 
-	private static final Template TEMPLATE = Template.of("ALTER TABLE {tableName} DROP FOREIGN KEY {foreignKey};");
+	private static final Template TEMPLATE = Template.of("ALTER TABLE `{tableName}` DROP FOREIGN KEY `{foreignKey}`;");
 
 	public static String get(String tableName, String foreignKey) {
 		return TEMPLATE.bind(tableName, foreignKey);

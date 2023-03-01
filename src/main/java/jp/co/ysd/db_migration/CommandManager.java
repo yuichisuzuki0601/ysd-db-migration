@@ -38,7 +38,7 @@ public final class CommandManager {
 	}
 
 	public ExecMode getMode() {
-		return commandLine.hasOption("mode") ? ExecMode.of(commandLine.getOptionValue("mode")) : ExecMode.NORMAL;
+		return commandLine.hasOption("mode") ? ExecMode.of(commandLine.getOptionValue("mode")) : ExecMode.APPLY;
 	}
 
 	public String getRootDir() {

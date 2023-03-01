@@ -9,7 +9,7 @@ import jp.co.ysd.ysd_util.string.Template;
  */
 public class MySqlSelectAllIndexFromTableSql {
 
-	private static final Template TEMPLATE = Template.of("SHOW INDEX FROM {tableName} WHERE Key_name LIKE 'idx_%%';");
+	private static final Template TEMPLATE = Template.of("SHOW INDEX FROM `{tableName}` WHERE Key_name LIKE 'idx_%%';");
 
 	public static String get(String tableName) {
 		return TEMPLATE.bind(tableName);

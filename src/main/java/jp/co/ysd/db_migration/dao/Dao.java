@@ -24,7 +24,6 @@ import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.StringUtils;
 
-import jp.co.ysd.db_migration.CommandManager;
 import jp.co.ysd.db_migration.ExecMode;
 import jp.co.ysd.db_migration.dao.sql.CreateForeignKeySql;
 import jp.co.ysd.db_migration.dao.sql.CreateIndexSql;
@@ -84,21 +83,17 @@ public abstract class Dao {
 	}
 
 	public void dropSchemaIfExists() {
-		if (CommandManager.getInstance().getAutoSchema()) {
-			var currentDataSource = CurrentDataSource.getInstance();
-			currentDataSource.toRoot();
-			execute(getDropSchemaIfExistsSql());
-			currentDataSource.toTarget();
-		}
+		var currentDataSource = CurrentDataSource.getInstance();
+		currentDataSource.toRoot();
+		execute(getDropSchemaIfExistsSql());
+		currentDataSource.toTarget();
 	};
 
 	public void createSchemaIfNotExists() {
-		if (CommandManager.getInstance().getAutoSchema()) {
-			var currentDataSource = CurrentDataSource.getInstance();
-			currentDataSource.toRoot();
-			execute(getCreateSchemaIfNotExistsSql());
-			currentDataSource.toTarget();
-		}
+		var currentDataSource = CurrentDataSource.getInstance();
+		currentDataSource.toRoot();
+		execute(getCreateSchemaIfNotExistsSql());
+		currentDataSource.toTarget();
 	};
 
 	public void dropAllTableAndView() {

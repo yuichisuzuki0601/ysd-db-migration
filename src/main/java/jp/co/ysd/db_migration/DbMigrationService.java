@@ -71,20 +71,33 @@ public class DbMigrationService {
 		if (mode.some(ExecMode.APPLY, ExecMode.REBUILD)) {
 			fileChecker.checkAllFiles();
 		}
-		dao.createSchemaIfNotExists();
-		if (mode.some(ExecMode.REBUILD, ExecMode.DROPALL)) {
-			dao.dropAllForeignKey();
-			dao.dropAllTableAndView();
-		}
-		if (mode.not(ExecMode.DROPALL)) {
-			var createds = prepareTable(mode, dao);
-			prepareIndex(mode, dao, createds);
-			prepareData(mode, dao, createds);
-			prepareConstraint(mode, dao, createds);
-			prepareView(mode, dao);
-			applySql(dao);
-		} else {
-			dao.dropSchemaIfExists();
+
+		var autoSchema = CommandManager.getInstance().getAutoSchema();
+		try {
+			if (autoSchema) {
+				dao.createSchemaIfNotExists();
+			}
+			if (mode.some(ExecMode.REBUILD, ExecMode.DROPALL)) {
+				dao.dropAllForeignKey();
+				dao.dropAllTableAndView();
+			}
+			if (mode.not(ExecMode.DROPALL)) {
+				var createds = prepareTable(mode, dao);
+				prepareIndex(mode, dao, createds);
+				prepareData(mode, dao, createds);
+				prepareConstraint(mode, dao, createds);
+				prepareView(mode, dao);
+				applySql(dao);
+			} else {
+				if (autoSchema) {
+					dao.dropSchemaIfExists();
+				}
+			}
+		} catch (Exception e) {
+			if (autoSchema) {
+				dao.dropSchemaIfExists();
+			}
+			throw e;
 		}
 
 		l.info("db-migration service finish.");

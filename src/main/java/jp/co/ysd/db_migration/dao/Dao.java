@@ -185,8 +185,8 @@ public abstract class Dao {
 		var sql = new StringBuilder();
 		for (var col : cols) {
 			var ref = (Map<String, String>) col.get("references");
-			sql.append(CreateForeignKeySql.get(tableName, (String) col.get("name"), ref.get("table"), ref.get("col"),
-					(String) col.get("option")));
+			sql.append(CreateForeignKeySql.get(ref.get("schema"), tableName, (String) col.get("name"), ref.get("table"),
+					ref.get("col"), (String) col.get("option")));
 		}
 		return sql.toString();
 	}

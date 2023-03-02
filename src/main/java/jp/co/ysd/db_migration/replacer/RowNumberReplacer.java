@@ -21,11 +21,16 @@ public class RowNumberReplacer implements DataReplacer {
 			var str = original.toString();
 			if (str.startsWith("rowNumber:")) {
 				var info = str.replaceAll("rowNumber:", "").split(":");
+				var schema = "";
 				var tableName = info[0];
+				if (tableName.contains(".")) {
+					schema = tableName.split("\\.")[0];
+					tableName = tableName.split("\\.")[1];
+				}
 				var index = info[1];
 				var dao = daoManager.get();
 				try {
-					var o = dao.selectDataOrderById(tableName, "id").get(Integer.parseInt(index) - 1);
+					var o = dao.selectDataOrderById(schema, tableName, "id").get(Integer.parseInt(index) - 1);
 					original = o.toString();
 				} catch (IndexOutOfBoundsException e) {
 					l.error("!!!IndexOutOfBounds!!! table:" + tableName);

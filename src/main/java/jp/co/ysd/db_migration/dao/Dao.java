@@ -180,7 +180,7 @@ public abstract class Dao {
 		var sql = new StringBuilder();
 		for (var col : cols) {
 			var ref = (Map<String, String>) col.get("references");
-			sql.append(CreateForeignKeySql.get(ref.get("schema"), tableName, (String) col.get("name"), ref.get("table"),
+			sql.append(CreateForeignKeySql.get(tableName, (String) col.get("name"), ref.get("schema"), ref.get("table"),
 					ref.get("col"), (String) col.get("option")));
 		}
 		return sql.toString();
@@ -274,8 +274,8 @@ public abstract class Dao {
 		return j.queryForObject(SelectDataByIdSql.get(column, tableName, id), (rs, rowNum) -> rs.getObject(1));
 	}
 
-	public List<Object> selectDataOrderById(String tableName, String column) {
-		return j.query(SelectDataOrderByIdSql.get(column, tableName), (rs, rowNum) -> rs.getObject(1));
+	public List<Object> selectDataOrderById(String schema, String tableName, String column) {
+		return j.query(SelectDataOrderByIdSql.get(column, schema, tableName), (rs, rowNum) -> rs.getObject(1));
 	}
 
 }

@@ -14,7 +14,7 @@ public final class CreateForeignKeySql {
 	private static final Template TEMPLATE = Template
 			.of("ALTER TABLE `{tableName}` ADD FOREIGN KEY (`{column}`) REFERENCES {schemaPart}`{targetTableName}` (`{targetColumn}`) {option};");
 
-	public static String get(String schema, String tableName, String column, String targetTableName,
+	public static String get(String tableName, String column, String schema, String targetTableName,
 			String targetColumn, String option) {
 		var schemaPart = StringUtils.hasText(schema) ? "`" + schema + "`." : "";
 		return TEMPLATE.bind(tableName, column, schemaPart, targetTableName, targetColumn, option);

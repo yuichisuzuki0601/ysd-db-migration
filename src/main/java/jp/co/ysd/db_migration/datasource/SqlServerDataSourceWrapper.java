@@ -14,14 +14,7 @@ public class SqlServerDataSourceWrapper extends DataSourceWrapper {
 	@Override
 	public String getBaseUrl() {
 		var spliteds = getProperty().getUrl().split(";");
-		var result = spliteds[0];
-		for (var i = 1; i < spliteds.length; ++i) {
-			var splited = spliteds[i];
-			if (!splited.contains("databaseName=")) {
-				result += ";" + spliteds[i];
-			}
-		}
-		return result;
+		return spliteds[0];
 	}
 
 	@Override
@@ -43,6 +36,19 @@ public class SqlServerDataSourceWrapper extends DataSourceWrapper {
 			}
 		}
 		return null;
+	}
+
+	@Override
+	public String getAdditionalParameter() {
+		var spliteds = getProperty().getUrl().split(";");
+		var result = "";
+		for (var i = 1; i < spliteds.length; ++i) {
+			var splited = spliteds[i];
+			if (!splited.contains("databaseName=")) {
+				result += ";" + spliteds[i];
+			}
+		}
+		return result;
 	}
 
 }

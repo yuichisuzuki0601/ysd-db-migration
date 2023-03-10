@@ -13,7 +13,9 @@ public class MySqlDataSourceWrapper extends DataSourceWrapper {
 
 	@Override
 	public String getBaseUrl() {
-		var spliteds = getProperty().getUrl().split("/");
+		var url = getProperty().getUrl();
+		var splitedWithQ = url.split("\\?");
+		var spliteds = splitedWithQ[0].split("/");
 		return spliteds[0] + "/" + spliteds[1] + "/" + spliteds[2];
 	}
 
@@ -33,6 +35,17 @@ public class MySqlDataSourceWrapper extends DataSourceWrapper {
 			return spliteds[3];
 		}
 		return null;
+	}
+
+	@Override
+	public String getAdditionalParameter() {
+		var url = getProperty().getUrl();
+		var splitedWithQ = url.split("\\?");
+		if (splitedWithQ.length > 1) {
+			return "?" + splitedWithQ[1];
+		} else {
+			return "";
+		}
 	}
 
 }

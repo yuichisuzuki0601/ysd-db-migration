@@ -20,7 +20,7 @@ public abstract class DataSourceWrapper {
 		this.property = property;
 		this.rootDataSource = DataSourceBuilder.create().//
 				driverClassName(property.getDriverClassName()).//
-				url(getBaseUrl()).//
+				url(getBaseUrl() + getAdditionalParameter()).//
 				username(property.getUsername()).//
 				password(property.getPassword()).//
 				build();
@@ -38,7 +38,9 @@ public abstract class DataSourceWrapper {
 
 	public abstract String getSchema();
 
+	public abstract String getAdditionalParameter();
+
 	public String getUrl() {
-		return getBaseUrl() + getSchemaSeparator() + getSchema();
+		return getBaseUrl() + getSchemaSeparator() + getSchema() + getAdditionalParameter();
 	}
 }

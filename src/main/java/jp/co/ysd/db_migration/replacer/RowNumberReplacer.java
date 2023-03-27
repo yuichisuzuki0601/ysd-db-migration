@@ -33,7 +33,7 @@ public class RowNumberReplacer implements DataReplacer {
 					var o = dao.selectDataOrderById(schema, tableName, "id").get(Integer.parseInt(index) - 1);
 					original = o.toString();
 				} catch (IndexOutOfBoundsException e) {
-					l.error("!!!IndexOutOfBounds!!! table:" + tableName);
+					l.error("!!!IndexOutOfBounds!!! table:" + tableName + ":" + index);
 					throw e;
 				}
 			}

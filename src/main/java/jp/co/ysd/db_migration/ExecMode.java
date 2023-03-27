@@ -12,11 +12,12 @@ public enum ExecMode {
 	// なし or apply:作成されていないテーブルのみ適用
 	// rebuild:全テーブル再作成
 	// dropall:全テーブル削除
+	// defineall:定義のみ全適用
 	// dataall:データのみ全適用
 	// replaceindex:インデックスの更新のみ
 	// replaceindex:インデックスの削除のみ
 	// replaceview:ビューの更新のみ
-	APPLY, REBUILD, DROPALL, DATAALL, REPLACEINDEX, DROPINDEX, REPLACEVIEW;
+	APPLY, REBUILD, DROPALL, DEFINEALL, DATAALL, REPLACEINDEX, DROPINDEX, REPLACEVIEW;
 
 	public static ExecMode of(String mode) {
 		for (ExecMode self : values()) {

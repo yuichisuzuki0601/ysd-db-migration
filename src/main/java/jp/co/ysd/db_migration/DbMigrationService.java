@@ -77,14 +77,16 @@ public class DbMigrationService {
 			if (autoSchema) {
 				dao.createSchemaIfNotExists();
 			}
-			if (mode.some(ExecMode.REBUILD, ExecMode.DROPALL)) {
+			if (mode.some(ExecMode.REBUILD, ExecMode.DROPALL, ExecMode.DEFINEALL)) {
 				dao.dropAllForeignKey();
 				dao.dropAllTableAndView();
 			}
 			if (mode.not(ExecMode.DROPALL)) {
 				var createds = prepareTable(mode, dao);
 				prepareIndex(mode, dao, createds);
-				prepareData(mode, dao, createds);
+				if (mode.not(ExecMode.DEFINEALL)) {
+					prepareData(mode, dao, createds);
+				}
 				prepareConstraint(mode, dao, createds);
 				prepareView(mode, dao);
 				applySql(dao);
@@ -106,7 +108,7 @@ public class DbMigrationService {
 	@SuppressWarnings("unchecked")
 	private List<String> prepareTable(ExecMode mode, Dao dao) throws IOException {
 		var createds = new ArrayList<String>();
-		if (mode.some(ExecMode.APPLY, ExecMode.REBUILD)) {
+		if (mode.some(ExecMode.APPLY, ExecMode.REBUILD, ExecMode.DEFINEALL)) {
 			var defineFiles = FileAccessor.getDefineFiles();
 			if (defineFiles != null) {
 				for (var defineFile : defineFiles) {
@@ -190,7 +192,7 @@ public class DbMigrationService {
 
 	@SuppressWarnings("unchecked")
 	private void prepareConstraint(ExecMode mode, Dao dao, List<String> createds) throws IOException {
-		if (mode.some(ExecMode.APPLY, ExecMode.REBUILD)) {
+		if (mode.some(ExecMode.APPLY, ExecMode.REBUILD, ExecMode.DEFINEALL)) {
 			for (var tableName : createds) {
 				var constraintFile = FileAccessor.getConstraintFile(tableName);
 				if (constraintFile.exists()) {
@@ -204,7 +206,7 @@ public class DbMigrationService {
 
 	@SuppressWarnings("unchecked")
 	private void prepareView(ExecMode mode, Dao dao) throws IOException {
-		if (mode.some(ExecMode.APPLY, ExecMode.REBUILD, ExecMode.REPLACEVIEW)) {
+		if (mode.some(ExecMode.APPLY, ExecMode.REBUILD, ExecMode.DEFINEALL, ExecMode.REPLACEVIEW)) {
 			var viewFiles = FileAccessor.getViewFiles();
 			for (var viewFile : viewFiles) {
 				var viewName = FilenameUtils.removeExtension(viewFile.getName()).replaceAll("-view", "");

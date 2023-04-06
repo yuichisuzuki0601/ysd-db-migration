@@ -221,6 +221,9 @@ public abstract class Dao {
 			} catch (DuplicateKeyException e) {
 				l.warn("!!!duplicated!!!");
 				count += 0;
+			} catch (Exception e) {
+				l.error("error occurred when insert data: insert target table={} ", tableName);
+				throw e;
 			}
 		}
 		return count;
@@ -266,6 +269,9 @@ public abstract class Dao {
 		} catch (DuplicateKeyException e) {
 			l.warn("!!!duplicated!!!");
 			result = new int[] { 0 };
+		} catch (Exception e) {
+			l.error("error occurred when insert data: insert target table={} ", tableName);
+			throw e;
 		}
 		return Arrays.stream(result).reduce((left, right) -> left + right).getAsInt();
 	}

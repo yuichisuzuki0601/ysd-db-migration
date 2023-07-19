@@ -17,7 +17,8 @@ public enum ExecMode {
 	// replaceindex:インデックスの更新のみ
 	// replaceindex:インデックスの削除のみ
 	// replaceview:ビューの更新のみ
-	APPLY, REBUILD, DROPALL, DEFINEALL, DATAALL, REPLACEINDEX, DROPINDEX, REPLACEVIEW;
+	// dropschema:スキーマ削除
+	APPLY, REBUILD, DROPALL, DEFINEALL, DATAALL, REPLACEINDEX, DROPINDEX, REPLACEVIEW, DROPSCHEMA;
 
 	public static ExecMode of(String mode) {
 		for (ExecMode self : values()) {

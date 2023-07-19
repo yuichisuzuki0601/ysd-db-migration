@@ -17,6 +17,12 @@ import jp.co.ysd.db_migration.dao.sql.sqlserver.SqlServerSelectAllTableAndViewSq
 public class SqlServerDao extends Dao {
 
 	@Override
+	protected String getSelectAllSchemasSql() {
+		// TODO 自動生成されたメソッド・スタブ
+		return null;
+	}
+
+	@Override
 	protected String getDropSchemaIfExistsSql() {
 		// TODO 自動生成されたメソッド・スタブ
 		return null;

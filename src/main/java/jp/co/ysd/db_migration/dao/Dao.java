@@ -62,6 +62,8 @@ public abstract class Dao {
 
 	protected abstract boolean existTableAndView(String tableName);
 
+	protected abstract String getSelectAllSchemasSql();
+
 	protected abstract String getDropSchemaIfExistsSql();
 
 	protected abstract String getCreateSchemaIfNotExistsSql();
@@ -80,6 +82,10 @@ public abstract class Dao {
 			l.info(sql);
 			j.execute(sql);
 		}
+	}
+
+	public List<String> selectAllSchemas() {
+		return j.query(getSelectAllSchemasSql(), (rs, i) -> rs.getString(1));
 	}
 
 	public void dropSchemaIfExists() {

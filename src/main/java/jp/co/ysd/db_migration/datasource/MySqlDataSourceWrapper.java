@@ -34,7 +34,7 @@ public class MySqlDataSourceWrapper extends DataSourceWrapper {
 		if (spliteds.length >= 4) {
 			return spliteds[3];
 		}
-		return null;
+		return "sys";
 	}
 
 	@Override

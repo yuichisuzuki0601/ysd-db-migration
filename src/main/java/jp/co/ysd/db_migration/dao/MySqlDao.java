@@ -21,6 +21,11 @@ public class MySqlDao extends Dao {
 	}
 
 	@Override
+	protected String getSelectAllSchemasSql() {
+		return "SHOW DATABASES";
+	}
+
+	@Override
 	protected String getDropSchemaIfExistsSql() {
 		return "DROP DATABASE IF EXISTS `" + getSchema() + "`";
 	}

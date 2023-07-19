@@ -57,6 +57,10 @@ public class DbMigrationService {
 		l.info("root directory: {}", FileAccessor.getRootDir());
 
 		var dao = daoManager.get();
+		if (mode.is(ExecMode.DROPSCHEMA)) {
+			dropSchemaWithoutExcludes(mode, dao, cm.getExcludeSchemas());
+			return;
+		}
 		if (mode.some(ExecMode.REPLACEINDEX, ExecMode.DROPINDEX)) {
 			prepareIndex(mode, dao);
 			return;
@@ -242,6 +246,14 @@ public class DbMigrationService {
 					}
 				}
 			}
+		}
+	}
+
+	private void dropSchemaWithoutExcludes(ExecMode mode, Dao dao, String excludeSchemas) {
+		var excludeSchemaList = List.of(excludeSchemas.split(","));
+		var candidates = dao.selectAllSchemas().stream().filter(s -> !excludeSchemaList.contains(s)).toList();
+		for (var candidate : candidates) {
+			dao.execute("DROP DATABASE `" + candidate + "`");
 		}
 	}
 

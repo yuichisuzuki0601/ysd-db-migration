@@ -33,6 +33,7 @@ public final class CommandManager {
 		options.addOption("rootdir", true, "テーブル定義ディレクトリ/データディレクトリのあるディレクトリパスを設定します");
 		options.addOption("datadir", true, "データディレクトリ名を設定します。デフォルトはdataです。");
 		options.addOption("targetschema", true, "適用するスキーマを指定します");
+		options.addOption("excludeschemas", true, "除外するスキーマ一覧を指定します");
 		options.addOption("autoschema", false, "スキーマの自動生成削除機能を有効にします");
 		this.commandLine = new DefaultParser().parse(options, args, false);
 	}
@@ -51,6 +52,10 @@ public final class CommandManager {
 
 	public String getTargetSchema() {
 		return commandLine.hasOption("targetschema") ? commandLine.getOptionValue("targetschema") : null;
+	}
+
+	public String getExcludeSchemas() {
+		return commandLine.hasOption("excludeschemas") ? commandLine.getOptionValue("excludeschemas") : null;
 	}
 
 	public boolean getAutoSchema() {
